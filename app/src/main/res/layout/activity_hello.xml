@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/hello_background"
+    android:gravity="center"
+    >
+
+<TextView
+android:id="@+id/tv_hello"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="hello"
+android:textSize="48sp"
+    android:textColor="#F6F5F5"
+android:textStyle="bold"
+android:fontFamily="cursive"
+android:layout_centerInParent="true" />
+    <TextView
+        android:id="@+id/tv_world_upside_down"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Let's make the world upside down"
+        android:textSize="32sp"
+        android:textColor="#FDF4FD"
+        android:layout_below="@id/tv_hello"
+        android:layout_marginTop="20dp"
+        android:textStyle="bold"
+        android:fontFamily="cursive"
+        android:visibility="gone" />  <!-- Initially hidden -->
+
+    </RelativeLayout>
