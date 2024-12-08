@@ -1,0 +1,26 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/et_community_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Community Name" />
+
+    <EditText
+        android:id="@+id/et_community_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Community Password"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/btn_create_community"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Community" />
+</LinearLayout>
