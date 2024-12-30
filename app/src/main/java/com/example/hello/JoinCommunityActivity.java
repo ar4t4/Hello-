@@ -2,6 +2,7 @@ package com.example.hello;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -59,14 +60,17 @@ public class JoinCommunityActivity extends AppCompatActivity {
 
                         if (password != null && password.equals(communityPassword.hashCode())) {
                             String communityId = communitySnapshot.getKey();
+                            Log.d("JoinCommunityActivity", "Found community: " + communityName + " with ID: " + communityId);
 
                             // Add the current user to the members list
                             DatabaseReference membersRef = communitySnapshot.child("members").getRef();
                             membersRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(true)
                                     .addOnCompleteListener(joinTask -> {
                                         if (joinTask.isSuccessful()) {
+                                            Log.d("JoinCommunityActivity", "User successfully joined community!");
+
                                             Toast.makeText(this, "Joined community successfully!", Toast.LENGTH_SHORT).show();
-                                            Intent intent = new Intent(JoinCommunityActivity.this, AbcdActivity.class);
+                                            Intent intent = new Intent(JoinCommunityActivity.this, DashboardActivity.class);
                                             intent.putExtra("communityId", communityId);
                                             startActivity(intent);
                                             finish(); // Close the current activity
@@ -90,8 +94,10 @@ public class JoinCommunityActivity extends AppCompatActivity {
             }
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("JoinCommunityActivity", "Firebase error: " + e.getMessage(), e);
         });
     }
+
 
 
 }
