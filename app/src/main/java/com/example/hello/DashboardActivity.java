@@ -2,6 +2,7 @@ package com.example.hello;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -35,7 +36,9 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.section_blood_search).setOnClickListener(v -> {
-            Toast.makeText(this, "Blood Search feature coming soon!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(DashboardActivity.this, BloodSearchActivity.class);
+            intent.putExtra("communityId", communityId);
+            startActivity(intent);
         });
 
         findViewById(R.id.section_fundraise).setOnClickListener(v -> {
@@ -45,5 +48,11 @@ public class DashboardActivity extends AppCompatActivity {
         findViewById(R.id.section_locations).setOnClickListener(v -> {
             Toast.makeText(this, "Locations feature coming soon!", Toast.LENGTH_SHORT).show();
         });
+        // Add this to DashboardActivity.java
+        findViewById(R.id.btn_personal_details).setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, PersonalDetailsActivity.class);
+            startActivity(intent);
+        });
+
     }
 }

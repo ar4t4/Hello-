@@ -13,6 +13,12 @@
         android:theme="@style/Theme.Hello"
         tools:targetApi="31">
         <activity
+            android:name=".BloodSearchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PersonalDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".DashboardActivity"
             android:exported="false" />
         <activity

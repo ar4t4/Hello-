@@ -74,6 +74,17 @@
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:layout_marginBottom="8dp" />
+        <!-- Add this button to activity_dashboard.xml -->
+        <Button
+            android:id="@+id/btn_personal_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Personal Details"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#0079C1"
+            android:textColor="#FAFAFA" />
+
+
 
     </LinearLayout>
 </ScrollView>
