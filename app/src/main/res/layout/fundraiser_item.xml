@@ -33,6 +33,6 @@
         android:layout_height="60dp"
         android:text="Delete Fundraiser"
         android:backgroundTint="#DF6A45"
-    <!--        android:visibility="gone" />-->
-    />
+            android:visibility="gone" />
+
 </LinearLayout>
