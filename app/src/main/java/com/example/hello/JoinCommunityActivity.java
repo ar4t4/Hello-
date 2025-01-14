@@ -1,6 +1,7 @@
 package com.example.hello;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -24,6 +25,7 @@ public class JoinCommunityActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join_community);
+
 
         // Initialize views
         etCommunityName = findViewById(R.id.joinname);
@@ -68,6 +70,10 @@ public class JoinCommunityActivity extends AppCompatActivity {
                                     .addOnCompleteListener(joinTask -> {
                                         if (joinTask.isSuccessful()) {
                                             Log.d("JoinCommunityActivity", "User successfully joined community!");
+
+                                            // Save communityId in SharedPreferences
+                                            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+                                            sharedPreferences.edit().putString("communityId", communityId).apply();
 
                                             Toast.makeText(this, "Joined community successfully!", Toast.LENGTH_SHORT).show();
                                             Intent intent = new Intent(JoinCommunityActivity.this, DashboardActivity.class);

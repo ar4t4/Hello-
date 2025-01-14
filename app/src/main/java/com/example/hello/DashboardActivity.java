@@ -1,6 +1,7 @@
 package com.example.hello;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -42,7 +43,9 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.section_fundraise).setOnClickListener(v -> {
-            Toast.makeText(this, "Fundraise feature coming soon!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(DashboardActivity.this, FundraiseActivity.class);
+            intent.putExtra("communityId", communityId);
+            startActivity(intent);
         });
 
         findViewById(R.id.section_locations).setOnClickListener(v -> {
@@ -53,6 +56,18 @@ public class DashboardActivity extends AppCompatActivity {
             Intent intent = new Intent(DashboardActivity.this, PersonalDetailsActivity.class);
             startActivity(intent);
         });
+        Button btnLeaveCommunity = findViewById(R.id.btn_leave_community);
+        btnLeaveCommunity.setOnClickListener(v -> leaveCommunity());
 
     }
+    private void leaveCommunity() {
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        sharedPreferences.edit().remove("communityId").apply();
+
+        Toast.makeText(this, "You have left the community.", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(DashboardActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 }

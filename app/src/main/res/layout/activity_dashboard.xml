@@ -74,7 +74,8 @@
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:layout_marginBottom="8dp" />
-        <!-- Add this button to activity_dashboard.xml -->
+
+        <!-- Personal Details Button -->
         <Button
             android:id="@+id/btn_personal_details"
             android:layout_width="match_parent"
@@ -84,7 +85,17 @@
             android:backgroundTint="#0079C1"
             android:textColor="#FAFAFA" />
 
-
+        <!-- Leave Community Button -->
+        <Button
+            android:id="@+id/btn_leave_community"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#B00020"
+            android:text="Leave Community"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:padding="12dp" />
 
     </LinearLayout>
 </ScrollView>
