@@ -73,17 +73,17 @@ public class CreateFundraiseActivity extends AppCompatActivity {
         // Generate a unique ID for the fundraiser
         String fundraiserId = fundraisersRef.push().getKey();
 
-        // Create a new Fundraiser object
-      //  Fundraiser fundraiser = new Fundraiser(title, amountNeeded, donationMethod, creatorId);
+       //  Create a new Fundraiser object
+        Fundraiser fundraiser = new Fundraiser(title, amountNeeded, donationMethod, creatorId);
 
-//        // Save the fundraiser to Firebase
-//        if (fundraiserId != null) {
-//            fundraisersRef.child(fundraiserId).setValue(fundraiser)
-//                    .addOnSuccessListener(aVoid -> {
-//                        Toast.makeText(CreateFundraiseActivity.this, "Fundraiser created successfully!", Toast.LENGTH_SHORT).show();
-//                        finish();  // Close the activity after successful creation
-//                    })
-//                    .addOnFailureListener(e -> Toast.makeText(CreateFundraiseActivity.this, "Failed to create fundraiser.", Toast.LENGTH_SHORT).show());
-//        }
+        // Save the fundraiser to Firebase
+        if (fundraiserId != null) {
+            fundraisersRef.child(fundraiserId).setValue(fundraiser)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(CreateFundraiseActivity.this, "Fundraiser created successfully!", Toast.LENGTH_SHORT).show();
+                        finish();  // Close the activity after successful creation
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(CreateFundraiseActivity.this, "Failed to create fundraiser.", Toast.LENGTH_SHORT).show());
+        }
     }
 }

@@ -13,9 +13,8 @@ public class Fundraiser {
     }
 
     // Constructor to initialize the Fundraiser object
-    public Fundraiser(String fundraiseId, String communityId, String title, String amountNeeded, String donationMethod, String creatorId) {
-        this.fundraiseId = fundraiseId;
-        this.communityId = communityId;
+    public Fundraiser(String title, String amountNeeded, String donationMethod, String creatorId) {
+
         this.title = title;
         this.amountNeeded = amountNeeded;
         this.donationMethod = donationMethod;
