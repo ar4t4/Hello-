@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -21,7 +20,6 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MemberLocationActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private MapView mapView;
     private GoogleMap mMap;
     private String communityId;
     private DatabaseReference membersRef;
@@ -31,14 +29,14 @@ public class MemberLocationActivity extends AppCompatActivity implements OnMapRe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_member_location);
 
-        mapView = findViewById(R.id.mapView);
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
-
         communityId = getIntent().getStringExtra("communityId");
         membersRef = FirebaseDatabase.getInstance().getReference("Communities").child(communityId).child("members");
 
-        fetchMemberData();
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapView);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
     }
 
     private void fetchMemberData() {
@@ -54,7 +52,7 @@ public class MemberLocationActivity extends AppCompatActivity implements OnMapRe
                         mMap.addMarker(new MarkerOptions()
                                 .position(memberLatLng)
                                 .title(member.getName())
-                                .snippet(member.getEmail()));
+                                .snippet("Home: " + member.getHome() + ", College: " + member.getCollege()));
                     }
                 }
             }
@@ -69,24 +67,7 @@ public class MemberLocationActivity extends AppCompatActivity implements OnMapRe
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        fetchMemberData();
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(23.810331, 90.412521), 10)); // Default location
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mapView.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mapView.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
     }
 }

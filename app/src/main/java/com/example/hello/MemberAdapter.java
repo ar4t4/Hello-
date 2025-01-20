@@ -35,7 +35,6 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         holder.tvMemberDetails.setText("Home: " + member.getHome() + "\nCollege: " + member.getCollege());
     }
 
-    @Override
     public int getItemCount() {
         return memberList.size();
     }
