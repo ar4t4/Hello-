@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,57 +19,40 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Hello"
         tools:targetApi="31">
-        <activity
-            android:name=".CreateFundraiseActivity"
-            android:exported="false" />
-        <activity
-            android:name=".FundraiseActivity"
-            android:exported="false" />
-        <activity
-            android:name=".BloodSearchActivity"
-            android:exported="false" />
-        <activity
-            android:name=".PersonalDetailsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".DashboardActivity"
-            android:exported="false" />
-        <activity
-            android:name=".UserDetailsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AbcdActivity"
-            android:exported="false" />
-        <activity
-            android:name=".JoinCommunityActivity"
-            android:exported="false" />
-        <activity
-            android:name=".CreateCommunityActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SignupActivity"
-            android:exported="false" />
+
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao" />
+
+        <!-- Main Launcher Activity -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- <activity -->
-        <!-- android:name=".BloodSearchActivity" -->
-        <!-- android:exported="false" /> -->
-        <!-- <activity -->
-        <!-- android:name=".UserProfileActivity" -->
-        <!-- android:exported="false" /> -->
+        </activity>
+
+        <!-- Activities -->
+        <activity android:name=".MemberLocationActivity" android:exported="false" />
+        <activity android:name=".LocationsActivity" android:exported="false" />
+        <activity android:name=".CreateFundraiseActivity" android:exported="false" />
+        <activity android:name=".FundraiseActivity" android:exported="false" />
+        <activity android:name=".BloodSearchActivity" android:exported="false" />
+        <activity android:name=".PersonalDetailsActivity" android:exported="false" />
+        <activity android:name=".DashboardActivity" android:exported="false" />
+        <activity android:name=".UserDetailsActivity" android:exported="false" />
+        <activity android:name=".AbcdActivity" android:exported="false" />
+        <activity android:name=".JoinCommunityActivity" android:exported="false" />
+        <activity android:name=".CreateCommunityActivity" android:exported="false" />
+        <activity android:name=".SignupActivity" android:exported="false" />
         <activity
             android:name=".HelloActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-    </application>
+        <activity android:name=".MainActivity" android:exported="false" />
 
+    </application>
 </manifest>

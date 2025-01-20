@@ -50,6 +50,10 @@ public class DashboardActivity extends AppCompatActivity {
 
         findViewById(R.id.section_locations).setOnClickListener(v -> {
             Toast.makeText(this, "Locations feature coming soon!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(DashboardActivity.this, LocationsActivity.class);
+            intent.putExtra("communityId", communityId);
+            startActivity(intent);
+
         });
         // Add this to DashboardActivity.java
         findViewById(R.id.btn_personal_details).setOnClickListener(v -> {
