@@ -8,12 +8,15 @@ public class Member {
     private String school;
     private String district;
     private Location location;
+    private String uid; // UID field
 
+    // Default constructor for Firebase
     public Member() {
-        // Default constructor for Firebase
     }
 
-    public Member(String name, String email, String home, String college, String school, String district, Location location) {
+    // Constructor with UID
+    public Member(String uid, String name, String email, String home, String college, String school, String district, Location location) {
+        this.uid = uid;
         this.name = name;
         this.email = email;
         this.home = home;
@@ -23,6 +26,16 @@ public class Member {
         this.location = location;
     }
 
+    // Getter and Setter for UID
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    // Getter and Setter for Name
     public String getName() {
         return name;
     }
@@ -31,6 +44,7 @@ public class Member {
         this.name = name;
     }
 
+    // Getter and Setter for Email
     public String getEmail() {
         return email;
     }
@@ -39,6 +53,7 @@ public class Member {
         this.email = email;
     }
 
+    // Getter and Setter for Home
     public String getHome() {
         return home;
     }
@@ -47,6 +62,7 @@ public class Member {
         this.home = home;
     }
 
+    // Getter and Setter for College
     public String getCollege() {
         return college;
     }
@@ -55,6 +71,7 @@ public class Member {
         this.college = college;
     }
 
+    // Getter and Setter for School
     public String getSchool() {
         return school;
     }
@@ -63,6 +80,7 @@ public class Member {
         this.school = school;
     }
 
+    // Getter and Setter for District
     public String getDistrict() {
         return district;
     }
@@ -71,6 +89,7 @@ public class Member {
         this.district = district;
     }
 
+    // Getter and Setter for Location
     public Location getLocation() {
         return location;
     }
@@ -79,19 +98,22 @@ public class Member {
         this.location = location;
     }
 
+    // Nested Location class
     public static class Location {
         private double latitude;
         private double longitude;
 
+        // Default constructor for Firebase
         public Location() {
-            // Default constructor for Firebase
         }
 
+        // Constructor with parameters
         public Location(double latitude, double longitude) {
             this.latitude = latitude;
             this.longitude = longitude;
         }
 
+        // Getter and Setter for Latitude
         public double getLatitude() {
             return latitude;
         }
@@ -100,6 +122,7 @@ public class Member {
             this.latitude = latitude;
         }
 
+        // Getter and Setter for Longitude
         public double getLongitude() {
             return longitude;
         }

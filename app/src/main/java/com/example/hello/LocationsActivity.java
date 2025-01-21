@@ -47,9 +47,7 @@ public class LocationsActivity extends AppCompatActivity {
         membersRef = FirebaseDatabase.getInstance().getReference("Communities").child(communityId).child("members");
         usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
-        stopSharingLocationButton.setOnClickListener(v -> {
-            stopSharingLocation();
-        });
+        stopSharingLocationButton.setOnClickListener(v -> stopSharingLocation());
 
         fetchMemberData();
     }
@@ -76,10 +74,13 @@ public class LocationsActivity extends AppCompatActivity {
         usersRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Member member = snapshot.getValue(Member.class);
-                if (member != null) {
-                    memberList.add(member);
-                    memberAdapter.notifyDataSetChanged(); // Update the RecyclerView
+                if (snapshot.exists()) {
+                    Member member = snapshot.getValue(Member.class);
+                    if (member != null) {
+                        member.setUid(userId); // Ensure UID is set
+                        memberList.add(member);
+                        memberAdapter.notifyDataSetChanged(); // Update the RecyclerView
+                    }
                 }
             }
 

@@ -21,39 +21,39 @@ import com.google.firebase.database.ValueEventListener;
 public class MemberLocationActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private String communityId;
-    private DatabaseReference membersRef;
+    private String memberId;
+    private DatabaseReference usersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_member_location);
 
-        communityId = getIntent().getStringExtra("communityId");
-        membersRef = FirebaseDatabase.getInstance().getReference("Communities").child(communityId).child("members");
+        memberId = getIntent().getStringExtra("memberId");
+        usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.mapView);
+                .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+        fetchMemberLocation();
     }
 
-    private void fetchMemberData() {
-        membersRef.addValueEventListener(new ValueEventListener() {
+    private void fetchMemberLocation() {
+        usersRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot memberSnapshot : snapshot.getChildren()) {
-                    Member member = memberSnapshot.getValue(Member.class);
-                    if (member != null && member.getLocation() != null) {
-                        LatLng memberLatLng = new LatLng(
-                                member.getLocation().getLatitude(),
-                                member.getLocation().getLongitude());
-                        mMap.addMarker(new MarkerOptions()
-                                .position(memberLatLng)
-                                .title(member.getName())
-                                .snippet("Home: " + member.getHome() + ", College: " + member.getCollege()));
-                    }
+                Member member = snapshot.getValue(Member.class);
+                if (member != null && member.getLocation() != null) {
+                    LatLng memberLatLng = new LatLng(
+                            member.getLocation().getLatitude(),
+                            member.getLocation().getLongitude());
+                    mMap.addMarker(new MarkerOptions()
+                            .position(memberLatLng)
+                            .title(member.getName()));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(memberLatLng, 15));
                 }
             }
 
@@ -67,7 +67,5 @@ public class MemberLocationActivity extends AppCompatActivity implements OnMapRe
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        fetchMemberData();
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(23.810331, 90.412521), 10)); // Default location
     }
 }
