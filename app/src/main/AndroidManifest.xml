@@ -77,6 +77,15 @@
         <activity
             android:name=".LoginActivity"
             android:exported="false"/>
+        <activity
+            android:name=".EventsActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".CreateEventActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".EventLocationActivity"
+            android:exported="false"/>
 
     </application>
 </manifest>

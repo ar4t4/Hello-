@@ -45,5 +45,5 @@ dependencies {
     implementation ("com.google.android.material:material:1.9.0")
     implementation ("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
     implementation ("com.google.android.material:material:1.9.0")
-
+    implementation("androidx.work:work-runtime:2.8.1")
 }
