@@ -5,7 +5,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -63,6 +70,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         Button btnLeaveCommunity = findViewById(R.id.btn_leave_community);
         btnLeaveCommunity.setOnClickListener(v -> leaveCommunity());
+
+        setupClickListeners();
     }
 
     private void leaveCommunity() {
@@ -73,5 +82,14 @@ public class DashboardActivity extends AppCompatActivity {
         Intent intent = new Intent(DashboardActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void setupClickListeners() {
+        findViewById(R.id.eventsCard).setOnClickListener(v -> {
+            // Use the existing communityId
+            Intent intent = new Intent(DashboardActivity.this, EventsActivity.class);
+            intent.putExtra("communityId", communityId);
+            startActivity(intent);
+        });
     }
 }
