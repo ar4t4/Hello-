@@ -1,5 +1,6 @@
 package com.example.hello;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -18,15 +19,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
-    private EditText emailEditText, passwordEditText, nameEditText, universityEditText, collegeEditText, schoolEditText, homeEditText, districtEditText;
+    private EditText emailEditText, passwordEditText, nameEditText, universityEditText, 
+                    collegeEditText, schoolEditText, homeEditText, districtEditText, phoneEditText;
     private Spinner bloodGroupSpinner;
     private Button signUpButton;
+    private DatabaseReference database;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance().getReference("Users");
+
+        // Initialize views
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         nameEditText = findViewById(R.id.nameEditText);
@@ -35,20 +44,21 @@ public class SignupActivity extends AppCompatActivity {
         schoolEditText = findViewById(R.id.schoolEditText);
         homeEditText = findViewById(R.id.homeEditText);
         districtEditText = findViewById(R.id.districtEditText);
+        phoneEditText = findViewById(R.id.phoneEditText);
         bloodGroupSpinner = findViewById(R.id.bloodGroupSpinner);
         signUpButton = findViewById(R.id.signUpButton);
 
-        // Initialize blood group options
+        // Set up blood group spinner
         String[] bloodGroups = {"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, bloodGroups);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
+            android.R.layout.simple_spinner_item, bloodGroups);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         bloodGroupSpinner.setAdapter(adapter);
 
-        signUpButton.setOnClickListener(v -> registerUser());
+        signUpButton.setOnClickListener(v -> signUp());
     }
 
-    private void registerUser() {
-        // Retrieve inputs
+    private void signUp() {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
         String name = nameEditText.getText().toString().trim();
@@ -57,47 +67,57 @@ public class SignupActivity extends AppCompatActivity {
         String school = schoolEditText.getText().toString().trim();
         String home = homeEditText.getText().toString().trim();
         String district = districtEditText.getText().toString().trim();
+        String phone = phoneEditText.getText().toString().trim();
         String bloodGroup = bloodGroupSpinner.getSelectedItem().toString();
 
-        if (email.isEmpty() || password.isEmpty() || name.isEmpty() || university.isEmpty() || college.isEmpty() || school.isEmpty() || home.isEmpty() || district.isEmpty() || bloodGroup.isEmpty()) {
-            Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
+        // Validate inputs
+        if (email.isEmpty() || password.isEmpty() || name.isEmpty()) {
+            Toast.makeText(this, "Email, password and name are required", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("Users");
+        // Show progress
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating account...");
+        progressDialog.show();
 
         auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String userId = auth.getCurrentUser().getUid();
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    String userId = auth.getCurrentUser().getUid();
 
-                        // Create a map for user data
-                        Map<String, Object> userData = new HashMap<>();
-                        userData.put("email", email);
-                        userData.put("name", name);
-                        userData.put("university", university);
-                        userData.put("college", college);
-                        userData.put("school", school);
-                        userData.put("home", home);
-                        userData.put("district", district);
-                        userData.put("bloodGroup", bloodGroup);
+                    Map<String, Object> userData = new HashMap<>();
+                    userData.put("email", email);
+                    userData.put("name", name);
+                    userData.put("university", university);
+                    userData.put("college", college);
+                    userData.put("school", school);
+                    userData.put("home", home);
+                    userData.put("district", district);
+                    userData.put("phone", phone);
+                    userData.put("bloodGroup", bloodGroup);
+                    userData.put("bloodDonate", true); // Default value
 
-                        // Save data to Firebase
-                        database.child(userId).setValue(userData)
-                                .addOnCompleteListener(databaseTask -> {
-                                    if (databaseTask.isSuccessful()) {
-                                        Toast.makeText(SignupActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(SignupActivity.this, MainActivity.class);
-                                        startActivity(intent);
-                                        finish();
-                                    } else {
-                                        Toast.makeText(SignupActivity.this, "Error: " + databaseTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                    } else {
-                        Toast.makeText(SignupActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    database.child(userId).setValue(userData)
+                        .addOnCompleteListener(dbTask -> {
+                            progressDialog.dismiss();
+                            if (dbTask.isSuccessful()) {
+                                Toast.makeText(SignupActivity.this, 
+                                    "Account created successfully", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(SignupActivity.this, MainActivity.class));
+                                finish();
+                            } else {
+                                Toast.makeText(SignupActivity.this, 
+                                    "Failed to save user data: " + dbTask.getException().getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                } else {
+                    progressDialog.dismiss();
+                    Toast.makeText(SignupActivity.this, 
+                        "Failed to create account: " + task.getException().getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 }
