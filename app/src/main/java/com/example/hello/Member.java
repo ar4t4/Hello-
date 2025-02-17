@@ -9,6 +9,9 @@ public class Member {
     private String district;
     private Location location;
     private String uid; // UID field
+    private String bloodGroup;
+    private String phone;
+    private boolean bloodDonate;
 
     // Default constructor for Firebase
     public Member() {
@@ -96,6 +99,33 @@ public class Member {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    // Getter and Setter for Blood Group
+    public String getBloodGroup() {
+        return bloodGroup;
+    }
+
+    public void setBloodGroup(String bloodGroup) {
+        this.bloodGroup = bloodGroup;
+    }
+
+    // Getter and Setter for Phone
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    // Getter and Setter for Blood Donate
+    public boolean isBloodDonate() {
+        return bloodDonate;
+    }
+
+    public void setBloodDonate(boolean bloodDonate) {
+        this.bloodDonate = bloodDonate;
     }
 
     // Nested Location class

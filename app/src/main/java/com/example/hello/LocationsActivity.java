@@ -1,14 +1,21 @@
 package com.example.hello;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
-
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.google.android.material.button.MaterialButton;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -19,46 +26,81 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LocationsActivity extends AppCompatActivity {
-
     private RecyclerView recyclerView;
     private MemberAdapter memberAdapter;
     private List<Member> memberList;
     private DatabaseReference membersRef;
     private DatabaseReference usersRef;
-    private Button stopSharingLocationButton;
+    private MaterialButton btnStopSharingLocation;
     private String communityId;
+    private FusedLocationProviderClient fusedLocationClient;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_locations);
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         communityId = getIntent().getStringExtra("communityId");
 
+        // Initialize views
         recyclerView = findViewById(R.id.recyclerViewMembers);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        btnStopSharingLocation = findViewById(R.id.btnStopSharingLocation);
 
-        stopSharingLocationButton = findViewById(R.id.btnStopSharingLocation);
-
+        // Initialize adapter
         memberList = new ArrayList<>();
-        memberAdapter = new MemberAdapter(this, memberList);
+        memberAdapter = new MemberAdapter(this, memberList, this::onCallButtonClick);
         recyclerView.setAdapter(memberAdapter);
 
-        membersRef = FirebaseDatabase.getInstance().getReference("Communities").child(communityId).child("members");
+        // Initialize Firebase references
+        membersRef = FirebaseDatabase.getInstance().getReference("Communities")
+            .child(communityId).child("members");
         usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
-        stopSharingLocationButton.setOnClickListener(v -> stopSharingLocation());
+        // Set up click listeners
+        btnStopSharingLocation.setOnClickListener(v -> stopSharingLocation());
 
+        // Check location permissions and start location updates
+        checkLocationPermission();
         fetchMemberData();
+    }
+
+    private void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            fetchAndUpdateLocation();
+        }
+    }
+
+    private void fetchAndUpdateLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+
+                    String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    usersRef.child(currentUserId).child("location")
+                            .setValue(new LocationModel(latitude, longitude))
+                            .addOnSuccessListener(aVoid -> Log.d("LocationUpdate", "Location updated successfully"))
+                            .addOnFailureListener(e -> Log.e("LocationUpdate", "Failed to update location", e));
+                } else {
+                    Toast.makeText(this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private void fetchMemberData() {
         membersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                memberList.clear(); // Clear the list to avoid duplicates
+                memberList.clear();
                 for (DataSnapshot memberSnapshot : snapshot.getChildren()) {
-                    String userId = memberSnapshot.getKey(); // Get UID of the member
+                    String userId = memberSnapshot.getKey();
                     fetchUserDetails(userId);
                 }
             }
@@ -77,9 +119,9 @@ public class LocationsActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     Member member = snapshot.getValue(Member.class);
                     if (member != null) {
-                        member.setUid(userId); // Ensure UID is set
+                        member.setUid(userId);
                         memberList.add(member);
-                        memberAdapter.notifyDataSetChanged(); // Update the RecyclerView
+                        memberAdapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -92,6 +134,27 @@ public class LocationsActivity extends AppCompatActivity {
     }
 
     private void stopSharingLocation() {
-        // Logic to stop location sharing
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        usersRef.child(currentUserId).child("location").removeValue()
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Stopped sharing location", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to stop sharing location", Toast.LENGTH_SHORT).show());
+    }
+
+    private void onCallButtonClick(String phoneNumber) {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + phoneNumber));
+        startActivity(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fetchAndUpdateLocation();
+            } else {
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

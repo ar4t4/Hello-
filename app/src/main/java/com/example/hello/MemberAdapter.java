@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,26 +17,40 @@ import java.util.List;
 
 public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberViewHolder> {
 
-    private List<Member> memberList;
+    private List<Member> members;
     private Context context;
+    private OnCallButtonClickListener callButtonClickListener;
 
-    public MemberAdapter(Context context, List<Member> memberList) {
+    public interface OnCallButtonClickListener {
+        void onCallButtonClick(String phoneNumber);
+    }
+
+    public MemberAdapter(Context context, List<Member> members, OnCallButtonClickListener listener) {
         this.context = context;
-        this.memberList = memberList;
+        this.members = members;
+        this.callButtonClickListener = listener;
     }
 
     @NonNull
     @Override
     public MemberViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.member_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.layout_member_item, parent, false);
         return new MemberViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MemberViewHolder holder, int position) {
-        Member member = memberList.get(position);
-        holder.tvMemberName.setText(member.getName());
-        holder.tvMemberDetails.setText("Home: " + member.getUid() + "\nCollege: " + member.getCollege());
+        Member member = members.get(position);
+        holder.memberName.setText(member.getName());
+        holder.memberCollege.setText(member.getCollege());
+        holder.bloodGroup.setText(member.getBloodGroup());
+        holder.donationStatus.setText(member.isBloodDonate() ? "Available" : "Unavailable");
+        
+        holder.btnCall.setOnClickListener(v -> {
+            if (callButtonClickListener != null && member.getPhone() != null) {
+                callButtonClickListener.onCallButtonClick(member.getPhone());
+            }
+        });
 
         // Handle item click
         holder.itemView.setOnClickListener(v -> {
@@ -51,16 +66,20 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
 
     @Override
     public int getItemCount() {
-        return memberList.size();
+        return members.size();
     }
 
     public static class MemberViewHolder extends RecyclerView.ViewHolder {
-        TextView tvMemberName, tvMemberDetails;
+        TextView memberName, memberCollege, bloodGroup, donationStatus;
+        ImageButton btnCall;
 
         public MemberViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvMemberName = itemView.findViewById(R.id.tvMemberName);
-            tvMemberDetails = itemView.findViewById(R.id.tvMemberDetails);
+            memberName = itemView.findViewById(R.id.memberName);
+            memberCollege = itemView.findViewById(R.id.memberCollege);
+            bloodGroup = itemView.findViewById(R.id.bloodGroup);
+            donationStatus = itemView.findViewById(R.id.donationStatus);
+            btnCall = itemView.findViewById(R.id.btnCall);
         }
     }
 }
