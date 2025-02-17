@@ -23,7 +23,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LocationsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -60,11 +62,37 @@ public class LocationsActivity extends AppCompatActivity {
         usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
         // Set up click listeners
-        btnStopSharingLocation.setOnClickListener(v -> stopSharingLocation());
+        btnStopSharingLocation.setOnClickListener(v -> {
+            if (btnStopSharingLocation.getText().toString().equals("Stop Sharing Location")) {
+                stopSharingLocation();
+            } else {
+                startSharingLocation();
+            }
+        });
 
         // Check location permissions and start location updates
         checkLocationPermission();
         fetchMemberData();
+
+        // Check current sharing status
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseDatabase.getInstance().getReference("Users")
+            .child(currentUserId)
+            .child("sharingLocation")
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    Boolean isSharing = snapshot.getValue(Boolean.class);
+                    if (isSharing != null && isSharing) {
+                        btnStopSharingLocation.setText("Stop Sharing Location");
+                    } else {
+                        btnStopSharingLocation.setText("Start Sharing Location");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
     }
 
     private void checkLocationPermission() {
@@ -135,9 +163,33 @@ public class LocationsActivity extends AppCompatActivity {
 
     private void stopSharingLocation() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        usersRef.child(currentUserId).child("location").removeValue()
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Stopped sharing location", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to stop sharing location", Toast.LENGTH_SHORT).show());
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
+        
+        // Set both location and sharingLocation status
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("location", null);
+        updates.put("sharingLocation", false);
+        
+        userRef.updateChildren(updates)
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "Location sharing disabled", Toast.LENGTH_SHORT).show();
+                btnStopSharingLocation.setText("Start Sharing Location");
+            })
+            .addOnFailureListener(e -> 
+                Toast.makeText(this, "Failed to stop sharing location", Toast.LENGTH_SHORT).show());
+    }
+
+    private void startSharingLocation() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
+        
+        userRef.child("sharingLocation").setValue(true)
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "Location sharing enabled", Toast.LENGTH_SHORT).show();
+                btnStopSharingLocation.setText("Stop Sharing Location");
+                // Update location immediately
+                fetchAndUpdateLocation();
+            });
     }
 
     private void onCallButtonClick(String phoneNumber) {

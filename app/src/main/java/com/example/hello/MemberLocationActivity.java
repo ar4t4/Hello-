@@ -1,7 +1,9 @@
 package com.example.hello;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,7 +40,41 @@ public class MemberLocationActivity extends AppCompatActivity implements OnMapRe
             mapFragment.getMapAsync(this);
         }
 
-        fetchMemberLocation();
+        checkLocationSharingStatus();
+    }
+
+    private void checkLocationSharingStatus() {
+        usersRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean sharingLocation = snapshot.child("sharingLocation").getValue(Boolean.class);
+                
+                if (sharingLocation == null || !sharingLocation) {
+                    showLocationDisabledDialog();
+                    return;
+                }
+                
+                fetchMemberLocation();
+            }
+            
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(MemberLocationActivity.this, 
+                    "Error checking location status", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showLocationDisabledDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("Location Not Available")
+            .setMessage("This user has disabled location sharing")
+            .setPositiveButton("OK", (dialog, which) -> {
+                dialog.dismiss();
+                finish();
+            })
+            .setCancelable(false)
+            .show();
     }
 
     private void fetchMemberLocation() {
