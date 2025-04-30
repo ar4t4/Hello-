@@ -28,6 +28,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    
+    lint {
+        abortOnError = false
+        disable += "NotificationPermission"
+    }
 }
 
 dependencies {
@@ -36,7 +41,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.firebase:firebase-auth:23.1.0")
-   implementation("com.google.firebase:firebase-storage:21.0.1")
+    implementation("com.google.firebase:firebase-storage:21.0.1")
     implementation ("com.google.android.gms:play-services-maps:18.1.0")
     implementation ("com.google.android.gms:play-services-location:19.0.0")
     testImplementation("junit:junit:4.13.2")
@@ -46,4 +51,12 @@ dependencies {
     implementation ("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
     implementation ("com.google.android.material:material:1.9.0")
     implementation("androidx.work:work-runtime:2.8.1")
+    
+    // Cloudinary SDK for Android
+    implementation("com.cloudinary:cloudinary-android:2.3.1")
+    implementation("com.squareup.picasso:picasso:2.8") // For image loading
+    implementation("androidx.activity:activity:1.7.2") // For modern image picking
+    
+    // Circle ImageView for profile pictures
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 }

@@ -7,12 +7,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.example.hello.helpers.CloudinaryHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +25,14 @@ public class BloodSearchAdapter extends ArrayAdapter<String> {
     private Context context;
     private List<String> names;
     private Map<String, String> phoneMap;
+    private Map<String, String> imageUrlMap;
 
-    public BloodSearchAdapter(Context context, List<String> names, Map<String, String> phoneMap) {
+    public BloodSearchAdapter(Context context, List<String> names, Map<String, String> phoneMap, Map<String, String> imageUrlMap) {
         super(context, R.layout.item_blood_search, names);
         this.context = context;
         this.names = names;
         this.phoneMap = phoneMap;
+        this.imageUrlMap = imageUrlMap;
     }
 
     @NonNull
@@ -41,9 +45,18 @@ public class BloodSearchAdapter extends ArrayAdapter<String> {
         TextView userName = convertView.findViewById(R.id.userName);
         TextView phoneNumber = convertView.findViewById(R.id.phoneNumber);
         Button callButton = convertView.findViewById(R.id.callButton);
+        ImageView profileImage = convertView.findViewById(R.id.profileImage);
 
         String name = names.get(position);
         userName.setText(name);
+
+        // Set profile image if available
+        String imageUrl = imageUrlMap != null ? imageUrlMap.get(name) : null;
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            CloudinaryHelper.loadImage(context, imageUrl, profileImage);
+        } else {
+            profileImage.setImageResource(R.drawable.profile_placeholder);
+        }
 
         String phone = phoneMap.get(name);
         if (phone != null && !phone.isEmpty()) {

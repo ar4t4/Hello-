@@ -31,8 +31,9 @@ public class BloodSearchActivity extends AppCompatActivity {
     private String communityId;
     private DatabaseReference usersRef;
     private ArrayList<String> resultList;
-    private ArrayAdapter<String> adapter;
+    private BloodSearchAdapter adapter;
     private HashMap<String, String> userPhoneMap;
+    private HashMap<String, String> userImageMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +63,8 @@ public class BloodSearchActivity extends AppCompatActivity {
         // Initialize result list and adapter
         resultList = new ArrayList<>();
         userPhoneMap = new HashMap<>();
-      //  adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, resultList);
-        adapter = new BloodSearchAdapter(this, resultList, userPhoneMap);
+        userImageMap = new HashMap<>();
+        adapter = new BloodSearchAdapter(this, resultList, userPhoneMap, userImageMap);
         lvResults.setAdapter(adapter);
 
 
@@ -95,6 +96,7 @@ public class BloodSearchActivity extends AppCompatActivity {
     private void searchBloodDonors(String bloodGroup) {
         resultList.clear();
         userPhoneMap.clear();
+        userImageMap.clear();
 
         DatabaseReference communityMembersRef = FirebaseDatabase.getInstance()
                 .getReference("Communities")
@@ -120,17 +122,35 @@ public class BloodSearchActivity extends AppCompatActivity {
                                     Toast.makeText(BloodSearchActivity.this, "User found", Toast.LENGTH_SHORT).show();
                                     String userBloodGroup = userSnapshot.child("bloodGroup").getValue(String.class);
                                     Boolean isAvailable = userSnapshot.child("bloodDonate").getValue(Boolean.class);
-                                    String name = userSnapshot.child("name").getValue(String.class);
+                                    
+                                    // Get name - either from firstName+lastName or legacy name field
+                                    String name;
+                                    if (userSnapshot.hasChild("firstName")) {
+                                        String firstName = userSnapshot.child("firstName").getValue(String.class);
+                                        String lastName = "";
+                                        if (userSnapshot.hasChild("lastName")) {
+                                            lastName = userSnapshot.child("lastName").getValue(String.class);
+                                        }
+                                        name = firstName + (lastName.isEmpty() ? "" : " " + lastName);
+                                    } else {
+                                        name = userSnapshot.child("name").getValue(String.class);
+                                    }
+                                    
                                     String phone = userSnapshot.child("phone").getValue(String.class);
-                                   // Object phoneObj = userSnapshot.child("phone").getValue();
-                                  //  String phone = phoneObj != null ? String.valueOf(phoneObj) : "N/A";
+                                    String profileImageUrl = userSnapshot.child("profileImageUrl").getValue(String.class);
 
                                     if (userBloodGroup != null && userBloodGroup.equalsIgnoreCase(bloodGroup)
                                             && isAvailable != null && isAvailable) {
                                         resultList.add(name);
                                         userPhoneMap.put(name, phone);
+                                        
+                                        // Store profile image URL if available
+                                        if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                                            userImageMap.put(name, profileImageUrl);
+                                        }
 
-                                        Log.d("DonorFound", "Name: " + name + ", BloodGroup: " + userBloodGroup + ", Phone: " + phone);
+                                        Log.d("DonorFound", "Name: " + name + ", BloodGroup: " + userBloodGroup + 
+                                              ", Phone: " + phone + ", Image: " + profileImageUrl);
                                     }
                                 } else {
                                     Log.w("UserCheck", "User with ID " + userId + " does not exist in the database.");

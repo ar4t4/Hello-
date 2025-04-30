@@ -1,31 +1,36 @@
 package com.example.hello;
 
 public class Member {
-    private String name;
+    private String firstName;
+    private String lastName;
     private String email;
     private String home;
     private String college;
     private String school;
     private String district;
+    private String university;
     private Location location;
     private String uid; // UID field
     private String bloodGroup;
     private String phone;
     private boolean bloodDonate;
+    private String profileImageUrl; // Profile image URL from Cloudinary
 
     // Default constructor for Firebase
     public Member() {
     }
 
     // Constructor with UID
-    public Member(String uid, String name, String email, String home, String college, String school, String district, Location location) {
+    public Member(String uid, String firstName, String lastName, String email, String home, String college, String school, String district, String university, Location location) {
         this.uid = uid;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.email = email;
         this.home = home;
         this.college = college;
         this.school = school;
         this.district = district;
+        this.university = university;
         this.location = location;
     }
 
@@ -38,13 +43,43 @@ public class Member {
         this.uid = uid;
     }
 
-    // Getter and Setter for Name
-    public String getName() {
-        return name;
+    // Getter and Setter for FirstName
+    public String getFirstName() {
+        return firstName;
     }
 
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    // Getter and Setter for LastName
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    // Getter for full name (for compatibility)
+    public String getName() {
+        if (firstName != null && lastName != null) {
+            return firstName + " " + lastName;
+        } else if (firstName != null) {
+            return firstName;
+        } else if (lastName != null) {
+            return lastName;
+        }
+        return "Unknown";
+    }
+
+    // Setter for full name (for compatibility)
     public void setName(String name) {
-        this.name = name;
+        if (name != null && !name.isEmpty()) {
+            String[] parts = name.split(" ", 2);
+            this.firstName = parts[0];
+            this.lastName = parts.length > 1 ? parts[1] : "";
+        }
     }
 
     // Getter and Setter for Email
@@ -72,6 +107,15 @@ public class Member {
 
     public void setCollege(String college) {
         this.college = college;
+    }
+
+    // Getter and Setter for University
+    public String getUniversity() {
+        return university;
+    }
+
+    public void setUniversity(String university) {
+        this.university = university;
     }
 
     // Getter and Setter for School
@@ -126,6 +170,15 @@ public class Member {
 
     public void setBloodDonate(boolean bloodDonate) {
         this.bloodDonate = bloodDonate;
+    }
+    
+    // Getter and Setter for Profile Image URL
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+    
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     // Nested Location class
