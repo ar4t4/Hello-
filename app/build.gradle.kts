@@ -36,20 +36,27 @@ android {
 }
 
 dependencies {
-    implementation ("com.google.firebase:firebase-database:21.0.0")
+    // Use a BoM (Bill of Materials) to manage Firebase versions
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    
+    // Firebase dependencies (version is managed by BoM)
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-firestore")
+    
+    // Other dependencies
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("com.google.firebase:firebase-auth:23.1.0")
-    implementation("com.google.firebase:firebase-storage:21.0.1")
-    implementation ("com.google.android.gms:play-services-maps:18.1.0")
-    implementation ("com.google.android.gms:play-services-location:19.0.0")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.gms:play-services-location:19.0.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    implementation ("com.google.android.material:material:1.9.0")
-    implementation ("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
-    implementation ("com.google.android.material:material:1.9.0")
+    implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
+    implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.work:work-runtime:2.8.1")
     
     // Cloudinary SDK for Android
@@ -59,4 +66,8 @@ dependencies {
     
     // Circle ImageView for profile pictures
     implementation("de.hdodenhof:circleimageview:3.1.0")
+    
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
 }

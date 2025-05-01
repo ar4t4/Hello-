@@ -53,6 +53,10 @@
         <activity android:name=".AbcdActivity" android:exported="false" />
         <activity android:name=".JoinCommunityActivity" android:exported="false" />
         <activity android:name=".CreateCommunityActivity" android:exported="false" />
+        <activity 
+            android:name=".CommunityDetailActivity" 
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
         <activity android:name=".SignupActivity" android:exported="false" />
         <activity
             android:name=".HelloActivity"

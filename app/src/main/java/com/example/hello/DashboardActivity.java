@@ -13,6 +13,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -68,10 +69,20 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Add community details button
+        findViewById(R.id.btn_community_details).setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, CommunityDetailActivity.class);
+            intent.putExtra("communityId", communityId);
+            startActivity(intent);
+        });
+
         Button btnLeaveCommunity = findViewById(R.id.btn_leave_community);
         btnLeaveCommunity.setOnClickListener(v -> leaveCommunity());
 
         setupClickListeners();
+        
+        // Check if the user is an admin to show pending requests notification
+        checkForPendingRequests();
     }
 
     private void leaveCommunity() {
@@ -90,6 +101,45 @@ public class DashboardActivity extends AppCompatActivity {
             Intent intent = new Intent(DashboardActivity.this, EventsActivity.class);
             intent.putExtra("communityId", communityId);
             startActivity(intent);
+        });
+    }
+    
+    private void checkForPendingRequests() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        
+        // Check if user is an admin
+        DatabaseReference adminRef = FirebaseDatabase.getInstance()
+                .getReference("Communities")
+                .child(communityId)
+                .child("admins")
+                .child(userId);
+                
+        adminRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // User is an admin, check for pending requests
+                    FirebaseFirestore.getInstance()
+                            .collection("join_requests")
+                            .whereEqualTo("communityId", communityId)
+                            .whereEqualTo("status", "pending")
+                            .get()
+                            .addOnSuccessListener(queryDocumentSnapshots -> {
+                                int count = queryDocumentSnapshots.size();
+                                if (count > 0) {
+                                    // Show a notification or badge that there are pending requests
+                                    Toast.makeText(DashboardActivity.this, 
+                                            "You have " + count + " pending join requests to review", 
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Do nothing
+            }
         });
     }
 }

@@ -10,6 +10,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.hello.models.JoinRequest;
+import com.example.hello.repositories.JoinRequestRepository;
+import com.example.hello.utils.JoinRequestDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
@@ -20,26 +23,28 @@ public class JoinCommunityActivity extends AppCompatActivity {
     private EditText etCommunityName, etCommunityPassword;
     private Button btnJoinCommunity;
     private DatabaseReference communitiesRef;
+    private JoinRequestRepository joinRequestRepository;
+    private static final String TAG = "JoinCommunityActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join_community);
 
-
         // Initialize views
         etCommunityName = findViewById(R.id.joinname);
         etCommunityPassword = findViewById(R.id.joinpass);
         btnJoinCommunity = findViewById(R.id.btn_join_community);
 
-        // Initialize Firebase reference
+        // Initialize Firebase reference and repository
         communitiesRef = FirebaseDatabase.getInstance().getReference("Communities");
+        joinRequestRepository = new JoinRequestRepository();
 
         // Set click listener for Join Community button
-        btnJoinCommunity.setOnClickListener(v -> joinCommunity());
+        btnJoinCommunity.setOnClickListener(v -> verifyAndRequestJoin());
     }
 
-    private void joinCommunity() {
+    private void verifyAndRequestJoin() {
         String communityName = etCommunityName.getText().toString().trim();
         String communityPassword = etCommunityPassword.getText().toString().trim();
 
@@ -62,28 +67,17 @@ public class JoinCommunityActivity extends AppCompatActivity {
 
                         if (password != null && password.equals(communityPassword.hashCode())) {
                             String communityId = communitySnapshot.getKey();
-                            Log.d("JoinCommunityActivity", "Found community: " + communityName + " with ID: " + communityId);
-
-                            // Add the current user to the members list
-                            DatabaseReference membersRef = communitySnapshot.child("members").getRef();
-                            membersRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(true)
-                                    .addOnCompleteListener(joinTask -> {
-                                        if (joinTask.isSuccessful()) {
-                                            Log.d("JoinCommunityActivity", "User successfully joined community!");
-
-                                            // Save communityId in SharedPreferences
-                                            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-                                            sharedPreferences.edit().putString("communityId", communityId).apply();
-
-                                            Toast.makeText(this, "Joined community successfully!", Toast.LENGTH_SHORT).show();
-                                            Intent intent = new Intent(JoinCommunityActivity.this, DashboardActivity.class);
-                                            intent.putExtra("communityId", communityId);
-                                            startActivity(intent);
-                                            finish(); // Close the current activity
-                                        } else {
-                                            Toast.makeText(this, "Failed to join the community.", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                            Log.d(TAG, "Found community: " + communityName + " with ID: " + communityId);
+                            
+                            // Check if user is already a member
+                            if (communitySnapshot.child("members").hasChild(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                Toast.makeText(this, "You are already a member of this community.", Toast.LENGTH_SHORT).show();
+                                navigateToDashboard(communityId);
+                                return;
+                            }
+                            
+                            // Show join request dialog instead of direct joining
+                            showJoinRequestDialog(communityId, name);
                             return;
                         } else {
                             Toast.makeText(this, "Incorrect community password.", Toast.LENGTH_SHORT).show();
@@ -100,10 +94,30 @@ public class JoinCommunityActivity extends AppCompatActivity {
             }
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            Log.e("JoinCommunityActivity", "Firebase error: " + e.getMessage(), e);
+            Log.e(TAG, "Firebase error: " + e.getMessage(), e);
         });
     }
 
-
-
+    private void showJoinRequestDialog(String communityId, String communityName) {
+        JoinRequestDialog.show(this, communityId, communityName, () -> {
+            // When request is sent successfully
+            Toast.makeText(this, "Join request sent. You'll be notified when approved.", Toast.LENGTH_LONG).show();
+            
+            // Navigate back to dashboard or main screen
+            Intent intent = new Intent(JoinCommunityActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
+    }
+    
+    private void navigateToDashboard(String communityId) {
+        // Save communityId in SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        sharedPreferences.edit().putString("communityId", communityId).apply();
+        
+        Intent intent = new Intent(JoinCommunityActivity.this, DashboardActivity.class);
+        intent.putExtra("communityId", communityId);
+        startActivity(intent);
+        finish();
+    }
 }
