@@ -19,7 +19,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AbcdActivity extends AppCompatActivity {
+public class AbcdActivity extends AppCompatActivity implements MemberAdapter.OnKickMemberListener {
     private RecyclerView recyclerView;
     private MemberAdapter adapter;
     private List<Member> memberList;
@@ -37,8 +37,8 @@ public class AbcdActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         memberList = new ArrayList<>();
         
-        // Pass the context (this) as the first parameter
-        adapter = new MemberAdapter(this, memberList, this::onCallButtonClick);
+        // Pass the context (this) as the first parameter and set kick listener
+        adapter = new MemberAdapter(this, memberList, this::onCallButtonClick, this);
         recyclerView.setAdapter(adapter);
 
         // Get community ID from intent
@@ -163,5 +163,89 @@ public class AbcdActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_DIAL);
         intent.setData(Uri.parse("tel:" + phoneNumber));
         startActivity(intent);
+    }
+    
+    @Override
+    public void onKickMember(Member member) {
+        if (member == null || member.getUid() == null) {
+            Toast.makeText(this, "Invalid member data", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Log.d(TAG, "Kicking member: " + member.getUid());
+        
+        // Remove the member from the community
+        DatabaseReference membersRef = FirebaseDatabase.getInstance()
+                .getReference("Communities")
+                .child(communityId)
+                .child("members")
+                .child(member.getUid());
+        
+        membersRef.removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Successfully removed member from community");
+                    
+                    // Also check and remove from admins if they are an admin
+                    FirebaseDatabase.getInstance()
+                            .getReference("Communities")
+                            .child(communityId)
+                            .child("admins")
+                            .child(member.getUid())
+                            .removeValue();
+                    
+                    // Clear the saved community ID from the user's preferences if they're using the app
+                    // This will force them back to the main screen next time they open the app
+                    updateUserPreferences(member.getUid());
+                    
+                    // Remove from local list and update adapter
+                    memberList.remove(member);
+                    adapter.notifyDataSetChanged();
+                    
+                    // Show success message
+                    String memberName = (member.getFirstName() != null ? member.getFirstName() : "Member");
+                    Toast.makeText(this, memberName + " removed from community", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to remove member: " + e.getMessage());
+                    Toast.makeText(this, "Failed to remove member: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+    
+    /**
+     * Update user preferences to clear their saved community ID
+     * @param userId The ID of the user being kicked
+     */
+    private void updateUserPreferences(String userId) {
+        // Save a notification for the user to see when they open the app
+        DatabaseReference notificationsRef = FirebaseDatabase.getInstance()
+                .getReference("notifications")
+                .child(userId);
+        
+        // Create a notification about being removed
+        String communityName = getIntent().getStringExtra("communityName");
+        if (communityName == null) {
+            communityName = "this community"; // Fallback
+        }
+        
+        // Create notification data
+        long timestamp = System.currentTimeMillis();
+        DatabaseReference newNotifRef = notificationsRef.push();
+        
+        newNotifRef.child("title").setValue("Removed from Community");
+        newNotifRef.child("message").setValue("You have been removed from " + communityName + 
+                ". You will need to send a new join request if you wish to rejoin.");
+        newNotifRef.child("timestamp").setValue(timestamp);
+        newNotifRef.child("read").setValue(false);
+        newNotifRef.child("type").setValue("kicked");
+        newNotifRef.child("communityId").setValue(communityId);
+        
+        Log.d(TAG, "Notification created for kicked user");
+        
+        // Also clear their saved community ID preference by setting a flag in their user data
+        DatabaseReference userRef = FirebaseDatabase.getInstance()
+                .getReference("Users")
+                .child(userId);
+        
+        userRef.child("kickedFromCommunity").setValue(communityId);
     }
 }

@@ -94,6 +94,24 @@
         <activity
             android:name=".EventLocationActivity"
             android:exported="false"/>
+        <activity 
+            android:name=".JoinRequestsActivity" 
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+        <activity
+            android:name=".ui.joinrequests.JoinRequestUpdateActivity"
+            android:label="Update Join Request"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".utils.FixSpecificJoinRequestActivity"
+            android:label="Fix Join Request"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="hello" android:host="fixrequest" />
+            </intent-filter>
+        </activity>
 
     </application>
 </manifest>
