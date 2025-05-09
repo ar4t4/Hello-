@@ -24,6 +24,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Always set the content view first
+        setContentView(R.layout.activity_main);
+        
+        // Then check if user is in a community
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String communityId = sharedPreferences.getString("communityId", null);
 
@@ -33,10 +38,10 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("communityId", communityId);
             startActivity(intent);
             finish();
-        } else {
-            setContentView(R.layout.activity_main); // Load MainActivity layout
+            return; // Exit onCreate after starting DashboardActivity
         }
 
+        // Initialize buttons after setting content view
         btnLogout = findViewById(R.id.btn_logout);
         btnCreateCommunity = findViewById(R.id.btn_create_community);
         btnJoinCommunity = findViewById(R.id.btn_join_community);
@@ -56,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
     }
-
 
     private void logout() {
         FirebaseAuth.getInstance().signOut(); // Log out from Firebase
