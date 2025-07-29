@@ -12,16 +12,16 @@ public class AIAssistantService {
     private static final String ASSISTANT_NAME = "Community Assistant";
     private final DatabaseReference messagesRef;
     private final Context context;
-    private DialogflowService dialogflowService;
+    private GeminiAIService geminiAIService;
     private boolean isProcessingMessage = false;
 
     public AIAssistantService(Context context, String chatId) {
         this.context = context;
         this.messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(chatId);
         try {
-            this.dialogflowService = new DialogflowService(context);
+            this.geminiAIService = new GeminiAIService(context);
         } catch (Exception e) {
-            Log.e(TAG, "Failed to initialize DialogflowService: " + e.getMessage(), e);
+            Log.e(TAG, "Failed to initialize GeminiAIService: " + e.getMessage(), e);
             // We'll handle this in processMessage
         }
     }
@@ -44,18 +44,18 @@ public class AIAssistantService {
         // Show typing indicator (optional)
         sendTypingIndicator(chatId, true);
         
-        // Check if Dialogflow service is available
-        if (dialogflowService == null) {
-            Log.e(TAG, "DialogflowService is null, using fallback response");
+        // Check if Gemini AI service is available
+        if (geminiAIService == null) {
+            Log.e(TAG, "GeminiAIService is null, using fallback response");
             sendTypingIndicator(chatId, false);
             sendAIResponse("I'm having trouble connecting to my brain right now. Please try again later.", chatId);
             isProcessingMessage = false;
             return;
         }
         
-        // Process with Dialogflow
+        // Process with Gemini AI
         try {
-            dialogflowService.sendMessage(userMessage, new DialogflowService.DialogflowResponseCallback() {
+            geminiAIService.sendMessage(userMessage, new GeminiAIService.GeminiResponseCallback() {
                 @Override
                 public void onResponse(String response) {
                     // Remove typing indicator
@@ -68,7 +68,7 @@ public class AIAssistantService {
 
                 @Override
                 public void onError(String error) {
-                    Log.e(TAG, "Dialogflow error: " + error);
+                    Log.e(TAG, "Gemini AI error: " + error);
                     
                     // Remove typing indicator
                     sendTypingIndicator(chatId, false);
@@ -79,7 +79,7 @@ public class AIAssistantService {
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "Exception while sending message to Dialogflow: " + e.getMessage(), e);
+            Log.e(TAG, "Exception while sending message to Gemini AI: " + e.getMessage(), e);
             sendTypingIndicator(chatId, false);
             sendAIResponse(getFallbackResponse(), chatId);
             isProcessingMessage = false;
@@ -87,12 +87,13 @@ public class AIAssistantService {
     }
     
     private void sendWelcomeMessage(String chatId) {
-        String welcomeMessage = "👋 Hi! I'm your Community Assistant powered by AI. I can help you with:\n\n" +
-                "• Blood donation information\n" +
-                "• Health-related questions\n" +
-                "• Community events\n" +
-                "• Emergency guidance\n\n" +
-                "How can I assist you today?";
+        String welcomeMessage = "👋 Hi! I'm your Community Assistant powered by Gemini AI. I can help you with:\n\n" +
+                "• Blood donation information and eligibility\n" +
+                "• Health-related questions and wellness tips\n" +
+                "• Community events and volunteer opportunities\n" +
+                "• Emergency guidance and basic first aid\n" +
+                "• General health awareness and education\n\n" +
+                "How can I assist you today? Feel free to ask me anything about health, blood donation, or community activities!";
         
         sendAIResponse(welcomeMessage, chatId);
     }
@@ -139,11 +140,11 @@ public class AIAssistantService {
     }
     
     public void shutdown() {
-        if (dialogflowService != null) {
+        if (geminiAIService != null) {
             try {
-                dialogflowService.shutdown();
+                geminiAIService.shutdown();
             } catch (Exception e) {
-                Log.e(TAG, "Error shutting down DialogflowService: " + e.getMessage(), e);
+                Log.e(TAG, "Error shutting down GeminiAIService: " + e.getMessage(), e);
             }
         }
     }

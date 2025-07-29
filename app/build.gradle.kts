@@ -16,6 +16,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        
+        // Add BuildConfig field for Gemini API key
+        buildConfigField("String", "GEMINI_API_KEY", "\"AIzaSyDkdeIVkcSH-L0m8RJdVViwTwYEPwvx2CE\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
