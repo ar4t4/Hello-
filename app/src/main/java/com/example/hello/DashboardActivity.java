@@ -3,7 +3,6 @@ package com.example.hello;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -81,8 +80,7 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        Button btnLeaveCommunity = findViewById(R.id.btn_leave_community);
-        btnLeaveCommunity.setOnClickListener(v -> leaveCommunity());
+        findViewById(R.id.btn_leave_community).setOnClickListener(v -> leaveCommunity());
 
         setupClickListeners();
         
