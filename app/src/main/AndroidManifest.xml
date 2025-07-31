@@ -57,6 +57,7 @@
         <!-- Activities -->
         <activity android:name=".MemberLocationActivity" android:exported="false" />
         <activity android:name=".LocationsActivity" android:exported="false" />
+        <activity android:name=".CommunityMapActivity" android:exported="false" />
         <activity android:name=".CreateFundraiseActivity" android:exported="false" />
         <activity android:name=".FundraiseActivity" android:exported="false" />
         <activity android:name=".BloodSearchActivity" android:exported="false" />

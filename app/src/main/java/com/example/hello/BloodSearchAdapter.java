@@ -7,12 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.example.hello.helpers.CloudinaryHelper;
 
@@ -26,13 +27,15 @@ public class BloodSearchAdapter extends ArrayAdapter<String> {
     private List<String> names;
     private Map<String, String> phoneMap;
     private Map<String, String> imageUrlMap;
+    private Map<String, String> bloodGroupMap;
 
-    public BloodSearchAdapter(Context context, List<String> names, Map<String, String> phoneMap, Map<String, String> imageUrlMap) {
+    public BloodSearchAdapter(Context context, List<String> names, Map<String, String> phoneMap, Map<String, String> imageUrlMap, Map<String, String> bloodGroupMap) {
         super(context, R.layout.item_blood_search, names);
         this.context = context;
         this.names = names;
         this.phoneMap = phoneMap;
         this.imageUrlMap = imageUrlMap;
+        this.bloodGroupMap = bloodGroupMap;
     }
 
     @NonNull
@@ -44,11 +47,20 @@ public class BloodSearchAdapter extends ArrayAdapter<String> {
 
         TextView userName = convertView.findViewById(R.id.userName);
         TextView phoneNumber = convertView.findViewById(R.id.phoneNumber);
-        Button callButton = convertView.findViewById(R.id.callButton);
+        TextView bloodGroup = convertView.findViewById(R.id.bloodGroup);
+        FloatingActionButton callButton = convertView.findViewById(R.id.callButton);
         ImageView profileImage = convertView.findViewById(R.id.profileImage);
 
         String name = names.get(position);
         userName.setText(name);
+
+        // Set blood group
+        String userBloodGroup = bloodGroupMap != null ? bloodGroupMap.get(name) : "O+";
+        if (userBloodGroup != null && !userBloodGroup.isEmpty()) {
+            bloodGroup.setText(userBloodGroup);
+        } else {
+            bloodGroup.setText("O+"); // fallback
+        }
 
         // Set profile image if available
         String imageUrl = imageUrlMap != null ? imageUrlMap.get(name) : null;

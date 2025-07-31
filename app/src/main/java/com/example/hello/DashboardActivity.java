@@ -3,7 +3,7 @@ package com.example.hello;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -81,10 +81,27 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        Button btnLeaveCommunity = findViewById(R.id.btn_leave_community);
-        btnLeaveCommunity.setOnClickListener(v -> leaveCommunity());
+        findViewById(R.id.btn_leave_community).setOnClickListener(v -> leaveCommunity());
+
+        // Add Community Assistant click listener
+        findViewById(R.id.community_assistant_card).setOnClickListener(v -> {
+            // Get current user ID
+            String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            // Create a unique chat ID for AI chat
+            String aiChatId = "ai_chat_" + currentUserId;
+            
+            // Start chat activity with AI
+            Intent intent = new Intent(DashboardActivity.this, ChatActivity.class);
+            intent.putExtra("chatId", aiChatId);
+            intent.putExtra("isAIChat", true);
+            startActivity(intent);
+        });
 
         setupClickListeners();
+        
+        // Load dynamic counts
+        loadMembersCount();
+        loadEventsCount();
         
         // Check if the user is an admin to show pending requests notification
         checkForPendingRequests();
@@ -144,6 +161,47 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 // Do nothing
+            }
+        });
+    }
+    
+    private void loadMembersCount() {
+        DatabaseReference membersRef = FirebaseDatabase.getInstance()
+                .getReference("Communities")
+                .child(communityId)
+                .child("members");
+                
+        membersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int count = (int) snapshot.getChildrenCount();
+                TextView membersCount = findViewById(R.id.membersCount);
+                membersCount.setText(String.valueOf(count));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Keep default value
+            }
+        });
+    }
+    
+    private void loadEventsCount() {
+        DatabaseReference eventsRef = FirebaseDatabase.getInstance()
+                .getReference("Events");
+                
+        eventsRef.orderByChild("communityId").equalTo(communityId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int count = (int) snapshot.getChildrenCount();
+                TextView eventsCount = findViewById(R.id.eventsCount);
+                eventsCount.setText(String.valueOf(count));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Keep default value
             }
         });
     }

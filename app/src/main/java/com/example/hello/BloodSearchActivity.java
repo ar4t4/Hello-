@@ -6,13 +6,13 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.Toast;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,7 +25,7 @@ import java.util.HashMap;
 
 public class BloodSearchActivity extends AppCompatActivity {
 
-    private Spinner spinnerBloodGroup;
+    private MaterialAutoCompleteTextView spinnerBloodGroup;
     private Button btnSearch;
     private ListView lvResults;
     private String communityId;
@@ -34,11 +34,16 @@ public class BloodSearchActivity extends AppCompatActivity {
     private BloodSearchAdapter adapter;
     private HashMap<String, String> userPhoneMap;
     private HashMap<String, String> userImageMap;
+    private HashMap<String, String> userBloodGroupMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blood_search);
+        
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+        
         communityId = getIntent().getStringExtra("communityId"); // Retrieve community ID
         //toast community id
         Toast.makeText(this, "Community ID: " + communityId, Toast.LENGTH_SHORT).show();
@@ -54,23 +59,27 @@ public class BloodSearchActivity extends AppCompatActivity {
         // Initialize Firebase reference
         usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
-        // Set up Spinner with blood group options
+        // Set up MaterialAutoCompleteTextView with blood group options
         String[] bloodGroups = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, bloodGroups);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, bloodGroups);
         spinnerBloodGroup.setAdapter(spinnerAdapter);
 
         // Initialize result list and adapter
         resultList = new ArrayList<>();
         userPhoneMap = new HashMap<>();
         userImageMap = new HashMap<>();
-        adapter = new BloodSearchAdapter(this, resultList, userPhoneMap, userImageMap);
+        userBloodGroupMap = new HashMap<>();
+        adapter = new BloodSearchAdapter(this, resultList, userPhoneMap, userImageMap, userBloodGroupMap);
         lvResults.setAdapter(adapter);
 
 
         // Handle search button click
         btnSearch.setOnClickListener(v -> {
-            String selectedBloodGroup = spinnerBloodGroup.getSelectedItem().toString();
+            String selectedBloodGroup = spinnerBloodGroup.getText().toString().trim();
+            if (selectedBloodGroup.isEmpty()) {
+                Toast.makeText(this, "Please select a blood group", Toast.LENGTH_SHORT).show();
+                return;
+            }
             //give a toast message
             Toast.makeText(this, "Searching for " + selectedBloodGroup + " donors...", Toast.LENGTH_SHORT).show();
             searchBloodDonors(selectedBloodGroup);
@@ -97,6 +106,7 @@ public class BloodSearchActivity extends AppCompatActivity {
         resultList.clear();
         userPhoneMap.clear();
         userImageMap.clear();
+        userBloodGroupMap.clear();
 
         DatabaseReference communityMembersRef = FirebaseDatabase.getInstance()
                 .getReference("Communities")
@@ -143,6 +153,7 @@ public class BloodSearchActivity extends AppCompatActivity {
                                             && isAvailable != null && isAvailable) {
                                         resultList.add(name);
                                         userPhoneMap.put(name, phone);
+                                        userBloodGroupMap.put(name, userBloodGroup);
                                         
                                         // Store profile image URL if available
                                         if (profileImageUrl != null && !profileImageUrl.isEmpty()) {

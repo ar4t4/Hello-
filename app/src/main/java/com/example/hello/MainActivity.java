@@ -13,13 +13,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.material.card.MaterialCardView;
 import com.example.hello.utils.JoinRequestUpdater;
 import com.example.hello.utils.FixSpecificJoinRequestActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnLogout;
-    private Button btnCreateCommunity, btnJoinCommunity;
+    private MaterialCardView btnLogout;
+    private MaterialCardView btnCreateCommunity, btnJoinCommunity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

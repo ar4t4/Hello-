@@ -7,9 +7,9 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,7 +17,6 @@ import com.example.hello.adapters.ActiveUserAdapter;
 import com.example.hello.adapters.ChatListAdapter;
 import com.example.hello.models.Chat;
 import com.example.hello.models.User;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -47,7 +46,6 @@ public class ChatListActivity extends AppCompatActivity implements ActiveUserAda
     private DatabaseReference chatsRef;
     private DatabaseReference messagesRef;
     private EditText searchInput;
-    private CardView communityChatCard;
     private Map<String, Long> lastMessageTimeMap; // Store last message times
     private ChildEventListener messagesListener;
 
@@ -63,17 +61,16 @@ public class ChatListActivity extends AppCompatActivity implements ActiveUserAda
         chatsRef = FirebaseDatabase.getInstance().getReference("Chats");
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages");
 
-        // Set up toolbar
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Chats");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // Set up back button instead of toolbar
+        ImageView backButton = findViewById(R.id.btn_back);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> onBackPressed());
+        }
 
         // Initialize views
         chatRecyclerView = findViewById(R.id.recyclerView);
         activeUsersRecyclerView = findViewById(R.id.activeUsersRecyclerView);
         searchInput = findViewById(R.id.searchInput);
-        communityChatCard = findViewById(R.id.communityChatCard);
         
         // Hide the New Chat FAB as requested
         View fabNewChat = findViewById(R.id.fabNewChat);
@@ -112,7 +109,7 @@ public class ChatListActivity extends AppCompatActivity implements ActiveUserAda
         });
 
         // Set up community chat card click
-        communityChatCard.setOnClickListener(v -> {
+        findViewById(R.id.communityChatCard).setOnClickListener(v -> {
             startGroupChat();
         });
         
@@ -121,19 +118,6 @@ public class ChatListActivity extends AppCompatActivity implements ActiveUserAda
 
         // Load community members
         loadCommunityMembers();
-
-        // Add AI Assistant card at the top of the list
-        CardView aiAssistantCard = findViewById(R.id.aiAssistantCard);
-        aiAssistantCard.setOnClickListener(v -> {
-            // Create a unique chat ID for AI chat
-            String aiChatId = "ai_chat_" + currentUserId;
-            
-            // Start chat activity with AI
-            Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
-            intent.putExtra("chatId", aiChatId);
-            intent.putExtra("isAIChat", true);
-            startActivity(intent);
-        });
     }
     
     @Override

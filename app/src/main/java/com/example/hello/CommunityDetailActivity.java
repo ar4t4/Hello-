@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.hello.fragments.CommunityRequestsButtonFragment;
 import com.example.hello.fragments.JoinRequestsFragment;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,7 +39,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private ImageView ivEditName;
     private String communityId;
     private DatabaseReference communityRef;
-    private LinearLayout adminControlsSection;
+    private MaterialCardView adminControlsSection;
     private SwitchMaterial switchFaceVerification;
     private boolean isAdmin = false;
     private static final String TAG = "CommunityDetailActivity";

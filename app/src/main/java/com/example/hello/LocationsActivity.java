@@ -6,6 +6,10 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,11 +33,14 @@ import java.util.Map;
 
 public class LocationsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
-    private MemberAdapter memberAdapter;
+    private LocationMemberAdapter memberAdapter;
     private List<Member> memberList;
     private DatabaseReference membersRef;
     private DatabaseReference usersRef;
     private MaterialButton btnStopSharingLocation;
+    private TextView tvMemberCount, tvSharingStatus;
+    private LinearLayout layoutEmptyState;
+    private ImageView btnBack, btnMapView;
     private String communityId;
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
@@ -47,21 +54,50 @@ public class LocationsActivity extends AppCompatActivity {
         communityId = getIntent().getStringExtra("communityId");
 
         // Initialize views
-        recyclerView = findViewById(R.id.recyclerViewMembers);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        btnStopSharingLocation = findViewById(R.id.btnStopSharingLocation);
-
+        initializeViews();
+        
         // Initialize adapter
         memberList = new ArrayList<>();
-        memberAdapter = new MemberAdapter(this, memberList, this::onCallButtonClick);
+        memberAdapter = new LocationMemberAdapter(this, memberList, this::onCallButtonClick);
         recyclerView.setAdapter(memberAdapter);
 
         // Initialize Firebase references
         membersRef = FirebaseDatabase.getInstance().getReference("Communities")
-            .child(communityId).child("members");
+            .child(communityId != null ? communityId : "default").child("members");
         usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
         // Set up click listeners
+        setupClickListeners();
+
+        // Check location permissions and start location updates
+        checkLocationPermission();
+        fetchMemberData();
+
+        // Check current sharing status
+        checkCurrentSharingStatus();
+    }
+
+    private void initializeViews() {
+        recyclerView = findViewById(R.id.recyclerViewMembers);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        btnStopSharingLocation = findViewById(R.id.btnStopSharingLocation);
+        tvMemberCount = findViewById(R.id.tv_member_count);
+        tvSharingStatus = findViewById(R.id.tv_sharing_status);
+        layoutEmptyState = findViewById(R.id.layout_empty_state);
+        btnBack = findViewById(R.id.btn_back);
+        btnMapView = findViewById(R.id.btn_map_view);
+    }
+
+    private void setupClickListeners() {
+        btnBack.setOnClickListener(v -> onBackPressed());
+        
+        btnMapView.setOnClickListener(v -> {
+            // Open map view with all member locations
+            Intent intent = new Intent(this, CommunityMapActivity.class);
+            intent.putExtra("communityId", communityId);
+            startActivity(intent);
+        });
+
         btnStopSharingLocation.setOnClickListener(v -> {
             if (btnStopSharingLocation.getText().toString().equals("Stop Sharing Location")) {
                 stopSharingLocation();
@@ -69,12 +105,9 @@ public class LocationsActivity extends AppCompatActivity {
                 startSharingLocation();
             }
         });
+    }
 
-        // Check location permissions and start location updates
-        checkLocationPermission();
-        fetchMemberData();
-
-        // Check current sharing status
+    private void checkCurrentSharingStatus() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseDatabase.getInstance().getReference("Users")
             .child(currentUserId)
@@ -83,16 +116,22 @@ public class LocationsActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     Boolean isSharing = snapshot.getValue(Boolean.class);
-                    if (isSharing != null && isSharing) {
-                        btnStopSharingLocation.setText("Stop Sharing Location");
-                    } else {
-                        btnStopSharingLocation.setText("Start Sharing Location");
-                    }
+                    updateSharingUI(isSharing != null && isSharing);
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {}
             });
+    }
+
+    private void updateSharingUI(boolean isSharing) {
+        if (isSharing) {
+            btnStopSharingLocation.setText("Stop Sharing Location");
+            tvSharingStatus.setText("Your location is being shared with community members");
+        } else {
+            btnStopSharingLocation.setText("Start Sharing Location");
+            tvSharingStatus.setText("Share your location with community members");
+        }
     }
 
     private void checkLocationPermission() {
@@ -127,10 +166,13 @@ public class LocationsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 memberList.clear();
+                int totalMembers = 0;
                 for (DataSnapshot memberSnapshot : snapshot.getChildren()) {
                     String userId = memberSnapshot.getKey();
+                    totalMembers++;
                     fetchUserDetails(userId);
                 }
+                updateMemberCount(totalMembers);
             }
 
             @Override
@@ -150,6 +192,7 @@ public class LocationsActivity extends AppCompatActivity {
                         member.setUid(userId);
                         memberList.add(member);
                         memberAdapter.notifyDataSetChanged();
+                        updateEmptyState();
                     }
                 }
             }
@@ -159,6 +202,36 @@ public class LocationsActivity extends AppCompatActivity {
                 Log.e("FirebaseError", "Failed to load user data", error.toException());
             }
         });
+    }
+
+    private void updateMemberCount(int total) {
+        int membersWithLocation = 0;
+        for (Member member : memberList) {
+            if (member.getLocation() != null) {
+                membersWithLocation++;
+            }
+        }
+        tvMemberCount.setText(membersWithLocation + " of " + total + " members sharing location");
+    }
+
+    private void updateEmptyState() {
+        boolean hasMembers = memberList.size() > 0;
+        boolean hasMembersWithLocation = false;
+        
+        for (Member member : memberList) {
+            if (member.getLocation() != null) {
+                hasMembersWithLocation = true;
+                break;
+            }
+        }
+        
+        if (!hasMembers || !hasMembersWithLocation) {
+            layoutEmptyState.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            layoutEmptyState.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void stopSharingLocation() {
@@ -173,7 +246,7 @@ public class LocationsActivity extends AppCompatActivity {
         userRef.updateChildren(updates)
             .addOnSuccessListener(aVoid -> {
                 Toast.makeText(this, "Location sharing disabled", Toast.LENGTH_SHORT).show();
-                btnStopSharingLocation.setText("Start Sharing Location");
+                updateSharingUI(false);
             })
             .addOnFailureListener(e -> 
                 Toast.makeText(this, "Failed to stop sharing location", Toast.LENGTH_SHORT).show());
@@ -186,10 +259,12 @@ public class LocationsActivity extends AppCompatActivity {
         userRef.child("sharingLocation").setValue(true)
             .addOnSuccessListener(aVoid -> {
                 Toast.makeText(this, "Location sharing enabled", Toast.LENGTH_SHORT).show();
-                btnStopSharingLocation.setText("Stop Sharing Location");
+                updateSharingUI(true);
                 // Update location immediately
                 fetchAndUpdateLocation();
-            });
+            })
+            .addOnFailureListener(e -> 
+                Toast.makeText(this, "Failed to start sharing location", Toast.LENGTH_SHORT).show());
     }
 
     private void onCallButtonClick(String phoneNumber) {

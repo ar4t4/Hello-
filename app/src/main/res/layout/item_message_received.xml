@@ -6,44 +6,92 @@
     android:orientation="horizontal"
     android:padding="8dp">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profileImage"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/profile_placeholder"
-        app:civ_border_color="@color/primary"
-        app:civ_border_width="1dp"
-        android:layout_marginEnd="8dp"/>
-
-    <LinearLayout
+    <!-- Modern Profile Image -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        app:cardCornerRadius="20dp"
+        app:cardElevation="3dp"
+        app:strokeWidth="0dp"
+        android:layout_marginEnd="12dp">
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profileImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/profile_placeholder"
+            app:civ_border_color="@color/white"
+            app:civ_border_width="2dp"/>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Message Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginEnd="60dp">
+
+        <!-- Sender Name -->
         <TextView
             android:id="@+id/senderName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:layout_marginBottom="4dp"/>
+            android:textColor="@color/primary_dark"
+            android:layout_marginBottom="6dp"
+            android:shadowColor="#20000000"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="1"/>
 
-        <TextView
-            android:id="@+id/messageText"
+        <!-- Modern Message Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_message_received"
-            android:padding="12dp"
-            android:textColor="@color/textPrimary"
-            android:textSize="16sp"/>
+            app:cardCornerRadius="18dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@android:color/transparent">
 
+            <!-- Gradient Background -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/gradient_message_received"
+                android:minWidth="80dp"
+                android:maxWidth="260dp">
+
+                <TextView
+                    android:id="@+id/messageText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:lineSpacingExtra="2dp"
+                    android:shadowColor="#40000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="1"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Timestamp -->
         <TextView
             android:id="@+id/timeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="@color/textSecondary"
-            android:textSize="12sp"/>
+            android:layout_marginStart="4dp"
+            android:textColor="#80000000"
+            android:textSize="11sp"/>
+
     </LinearLayout>
+
 </LinearLayout> 

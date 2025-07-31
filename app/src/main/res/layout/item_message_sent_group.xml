@@ -5,33 +5,85 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="end"
-    android:padding="4dp">
+    android:padding="8dp">
 
+    <!-- Sender Name for Group Chat -->
     <TextView
         android:id="@+id/senderName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:textColor="@color/textSecondary"
-        android:layout_marginEnd="4dp"/>
+        android:textColor="@color/primary_dark"
+        android:textStyle="bold"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="4dp"
+        android:shadowColor="#20000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="1"/>
 
-    <TextView
-        android:id="@+id/messageText"
+    <!-- Modern Message Card -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_message_sent"
-        android:maxWidth="260dp"
-        android:padding="12dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"/>
+        android:layout_marginStart="60dp"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="@android:color/transparent">
 
-    <TextView
-        android:id="@+id/timeText"
+        <!-- Gradient Background -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/gradient_message_sent"
+            android:minWidth="80dp"
+            android:maxWidth="260dp">
+
+            <TextView
+                android:id="@+id/messageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:lineSpacingExtra="2dp"
+                android:shadowColor="#40000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Message Info -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="4dp"
-        android:textColor="@color/textSecondary"
-        android:textSize="12sp"/>
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/timeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#80000000"
+            android:textSize="11sp"
+            android:layout_marginEnd="4dp"/>
+
+        <!-- Message Status Icon -->
+        <ImageView
+            android:id="@+id/messageStatus"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@drawable/ic_check"
+            android:tint="@color/primary"
+            android:visibility="visible"/>
+
+    </LinearLayout>
 
 </LinearLayout> 

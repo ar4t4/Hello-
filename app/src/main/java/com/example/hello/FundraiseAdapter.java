@@ -72,7 +72,6 @@ public class FundraiseAdapter extends RecyclerView.Adapter<FundraiseAdapter.Fund
         }
         
         // Format currency amounts with null/zero checks
-        NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
         double raisedAmount = fundraise.getRaisedAmount();
         double targetAmount = 0;
         try {
@@ -82,8 +81,9 @@ public class FundraiseAdapter extends RecyclerView.Adapter<FundraiseAdapter.Fund
             targetAmount = 0;
         }
         
-        holder.raisedAmount.setText(format.format(raisedAmount));
-        holder.targetAmount.setText("Target: " + format.format(targetAmount));
+        // Use TK currency format instead of INR
+        holder.raisedAmount.setText("TK " + String.format("%.0f", raisedAmount));
+        holder.targetAmount.setText("Target: TK " + String.format("%.0f", targetAmount));
         
         // Calculate and set progress with zero check
         int progress = targetAmount > 0 ? 

@@ -32,6 +32,9 @@ public class AbcdActivity extends AppCompatActivity implements MemberAdapter.OnK
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_abcd);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         // Initialize views
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

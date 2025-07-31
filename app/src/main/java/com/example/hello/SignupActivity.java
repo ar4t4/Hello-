@@ -20,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ import java.util.Map;
 public class SignupActivity extends AppCompatActivity {
     private EditText emailEditText, passwordEditText, firstNameEditText, lastNameEditText, universityEditText, 
                     collegeEditText, schoolEditText, homeEditText, districtEditText, phoneEditText;
-    private Spinner bloodGroupSpinner;
+    private MaterialAutoCompleteTextView bloodGroupSpinner;
     private Button signUpButton;
     private ImageView profileImageView;
     private FloatingActionButton addImageButton;
@@ -71,11 +72,10 @@ public class SignupActivity extends AppCompatActivity {
         profileImageView = findViewById(R.id.profileImageView);
         addImageButton = findViewById(R.id.addImageButton);
 
-        // Set up blood group spinner
+        // Set up blood group dropdown
         String[] bloodGroups = {"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_spinner_item, bloodGroups);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            android.R.layout.simple_dropdown_item_1line, bloodGroups);
         bloodGroupSpinner.setAdapter(adapter);
 
         // Set up image selection
@@ -96,7 +96,7 @@ public class SignupActivity extends AppCompatActivity {
         String home = homeEditText.getText().toString().trim();
         String district = districtEditText.getText().toString().trim();
         String phone = phoneEditText.getText().toString().trim();
-        String bloodGroup = bloodGroupSpinner.getSelectedItem().toString();
+        String bloodGroup = bloodGroupSpinner.getText().toString().trim();
 
         // Validate inputs
         if (email.isEmpty() || password.isEmpty() || firstName.isEmpty()) {

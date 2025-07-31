@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 import com.example.hello.adapters.EventAdapter;
@@ -34,6 +34,9 @@ public class EventsActivity extends AppCompatActivity implements EventAdapter.Ev
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_events);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         communityId = getIntent().getStringExtra("communityId");
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         eventsRef = FirebaseDatabase.getInstance().getReference("Events");
@@ -50,7 +53,7 @@ public class EventsActivity extends AppCompatActivity implements EventAdapter.Ev
         adapter = new EventAdapter(this, eventList, currentUserId, this);
         recyclerView.setAdapter(adapter);
 
-        FloatingActionButton fabCreateEvent = findViewById(R.id.fabCreateEvent);
+        ExtendedFloatingActionButton fabCreateEvent = findViewById(R.id.fabCreateEvent);
         fabCreateEvent.setOnClickListener(v -> {
             Intent intent = new Intent(this, CreateEventActivity.class);
             intent.putExtra("communityId", communityId);

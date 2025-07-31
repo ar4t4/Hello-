@@ -3,6 +3,8 @@ package com.example.hello;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.hello.adapters.MessageAdapter;
 import com.example.hello.models.Message;
 import com.example.hello.services.AIAssistantService;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -61,12 +62,18 @@ public class ChatActivity extends AppCompatActivity {
             aiAssistant = new AIAssistantService(this, chatId);
         }
 
-        // Set up toolbar
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(isAIChat ? "Community Assistant" : 
-            (isGroup ? "Community Group Chat" : (otherUserName != null ? otherUserName : "Chat")));
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // Set up back button and user name
+        ImageView backButton = findViewById(R.id.btn_back);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> onBackPressed());
+        }
+        
+        // Set user name in header
+        TextView userNameView = findViewById(R.id.userName);
+        if (userNameView != null) {
+            userNameView.setText(isAIChat ? "Community Assistant" : 
+                (isGroup ? "Community Group Chat" : (otherUserName != null ? otherUserName : "Chat")));
+        }
 
         // Initialize views
         recyclerView = findViewById(R.id.recyclerView);
