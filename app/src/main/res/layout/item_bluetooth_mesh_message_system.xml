@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="8dp">
+
+    <!-- System Message Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        app:cardElevation="1dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/surface_variant">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:gravity="center">
+
+            <!-- System Message -->
+            <TextView
+                android:id="@+id/system_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="System message: Network topology updated"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:textStyle="italic"
+                android:gravity="center" />
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12:34"
+                android:textSize="10sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp"
+                android:alpha="0.7" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

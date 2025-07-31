@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardElevation="3dp"
+    app:cardCornerRadius="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:gravity="center">
+
+        <!-- Status Icon -->
+        <ImageView
+            android:id="@+id/status_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_circle"
+            app:tint="@color/green" />
+
+        <!-- Device Name -->
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Device"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="4dp" />
+
+        <!-- Connection Info -->
+        <TextView
+            android:id="@+id/connection_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Direct"
+            android:textSize="10sp"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:layout_marginTop="2dp" />
+
+        <!-- Hop Indicator -->
+        <TextView
+            android:id="@+id/hop_indicator"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:text="1"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/circle_background"
+            android:gravity="center"
+            android:layout_marginTop="4dp" />
+
+        <!-- Connected Count -->
+        <TextView
+            android:id="@+id/connected_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 connected"
+            android:textSize="9sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="2dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

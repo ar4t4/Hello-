@@ -46,6 +46,11 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        findViewById(R.id.section_chat_offline).setOnClickListener(v -> {
+            Intent intent = new Intent(this, BluetoothMeshChatActivity.class);
+            startActivity(intent);
+        });
+
         findViewById(R.id.section_blood_search).setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, BloodSearchActivity.class);
             intent.putExtra("communityId", communityId);
