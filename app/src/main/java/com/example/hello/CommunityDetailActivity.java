@@ -19,8 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.hello.fragments.CommunityRequestsButtonFragment;
-import com.example.hello.fragments.JoinRequestsFragment;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
@@ -35,7 +33,6 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
     private TextView tvCommunityName, tvMemberCount, tvDescription;
     private Button btnMembers, btnLeave, btnRequests;
-    private MaterialToolbar toolbar;
     private ImageView ivEditName;
     private String communityId;
     private DatabaseReference communityRef;
@@ -58,7 +55,6 @@ public class CommunityDetailActivity extends AppCompatActivity {
         }
 
         // Initialize views
-        toolbar = findViewById(R.id.toolbar);
         tvCommunityName = findViewById(R.id.tv_community_name);
         tvMemberCount = findViewById(R.id.tv_member_count);
         tvDescription = findViewById(R.id.tv_community_description);
@@ -75,10 +71,11 @@ public class CommunityDetailActivity extends AppCompatActivity {
             btnChat.setVisibility(View.GONE);
         }
 
-        // Set up toolbar
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        // Set up back button
+        ImageView btnBack = findViewById(R.id.btn_back);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> onBackPressed());
+        }
 
         // Initialize Firebase reference
         communityRef = FirebaseDatabase.getInstance().getReference("Communities").child(communityId);
@@ -397,7 +394,6 @@ public class CommunityDetailActivity extends AppCompatActivity {
                     // Update UI with community data
                     if (name != null) {
                         tvCommunityName.setText(name);
-                        toolbar.setTitle(name);
                     }
                     
                     // Handle description - hide if not available instead of showing "No description available"

@@ -82,6 +82,9 @@ public class PersonalDetailsActivity extends AppCompatActivity {
         profileImageView = findViewById(R.id.profileImageView);
         btnChangeImage = findViewById(R.id.btnChangeImage);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         // Setup profile image change button
         btnChangeImage.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
 

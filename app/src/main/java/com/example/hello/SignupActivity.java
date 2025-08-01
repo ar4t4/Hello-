@@ -72,6 +72,9 @@ public class SignupActivity extends AppCompatActivity {
         profileImageView = findViewById(R.id.profileImageView);
         addImageButton = findViewById(R.id.addImageButton);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         // Set up blood group dropdown
         String[] bloodGroups = {"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 

@@ -48,6 +48,26 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
+        // Validate input fields
+        if (email.isEmpty()) {
+            emailEditText.setError("Email is required");
+            emailEditText.requestFocus();
+            return;
+        }
+
+        if (password.isEmpty()) {
+            passwordEditText.setError("Password is required");
+            passwordEditText.requestFocus();
+            return;
+        }
+
+        // Additional email format validation
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailEditText.setError("Please enter a valid email address");
+            emailEditText.requestFocus();
+            return;
+        }
+
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {

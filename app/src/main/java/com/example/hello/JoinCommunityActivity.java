@@ -36,6 +36,9 @@ public class JoinCommunityActivity extends AppCompatActivity {
         etCommunityPassword = findViewById(R.id.joinpass);
         btnJoinCommunity = findViewById(R.id.btn_join_community);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         // Initialize Firebase reference and repository
         communitiesRef = FirebaseDatabase.getInstance().getReference("Communities");
         joinRequestRepository = new JoinRequestRepository();

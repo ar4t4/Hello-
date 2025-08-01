@@ -16,6 +16,9 @@ public class UserDetailsActivity extends AppCompatActivity {
 
         tvUserDetails = findViewById(R.id.tv_user_details);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         String userDetails = getIntent().getStringExtra("userDetails");
 
         if (userDetails != null) {

@@ -103,6 +103,9 @@ public class DashboardActivity extends AppCompatActivity {
         loadMembersCount();
         loadEventsCount();
         
+        // Load user profile information
+        loadUserProfile();
+        
         // Check if the user is an admin to show pending requests notification
         checkForPendingRequests();
     }
@@ -202,6 +205,67 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 // Keep default value
+            }
+        });
+    }
+    
+    private void loadUserProfile() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+        
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // Get user information
+                    String firstName = snapshot.child("firstName").getValue(String.class);
+                    String lastName = snapshot.child("lastName").getValue(String.class);
+                    String email = snapshot.child("email").getValue(String.class);
+                    String college = snapshot.child("college").getValue(String.class);
+                    String university = snapshot.child("university").getValue(String.class);
+                    
+                    // Update UI elements
+                    TextView tvUserName = findViewById(R.id.tv_user_name);
+                    TextView tvUserEmail = findViewById(R.id.tv_user_email);
+                    TextView tvUserCollege = findViewById(R.id.tv_user_college);
+                    
+                    // Set name
+                    if (firstName != null && lastName != null) {
+                        tvUserName.setText(firstName + " " + lastName);
+                    } else if (firstName != null) {
+                        tvUserName.setText(firstName);
+                    } else {
+                        tvUserName.setText("User");
+                    }
+                    
+                    // Set email
+                    if (email != null) {
+                        tvUserEmail.setText(email);
+                    } else {
+                        tvUserEmail.setText(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+                    }
+                    
+                    // Set college/university
+                    if (college != null && !college.isEmpty()) {
+                        tvUserCollege.setText(college);
+                        tvUserCollege.setVisibility(android.view.View.VISIBLE);
+                    } else if (university != null && !university.isEmpty()) {
+                        tvUserCollege.setText(university);
+                        tvUserCollege.setVisibility(android.view.View.VISIBLE);
+                    } else {
+                        tvUserCollege.setVisibility(android.view.View.GONE);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Keep default values
+                TextView tvUserName = findViewById(R.id.tv_user_name);
+                TextView tvUserEmail = findViewById(R.id.tv_user_email);
+                
+                tvUserName.setText("User");
+                tvUserEmail.setText(FirebaseAuth.getInstance().getCurrentUser().getEmail());
             }
         });
     }

@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="#CCCCCC" />
-    <size android:width="120dp" android:height="120dp" />
-</shape> 
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background circle -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#E3F2FD" />
+        </shape>
+    </item>
+    <!-- Person icon -->
+    <item android:drawable="@drawable/ic_person" 
+          android:gravity="center"
+          android:width="32dp"
+          android:height="32dp" />
+</layer-list> 

@@ -26,6 +26,9 @@ public class CreateCommunityActivity extends AppCompatActivity {
         communityPasswordEditText = findViewById(R.id.et_community_password);
         createCommunityButton = findViewById(R.id.btn_create_community);
 
+        // Set up back button
+        findViewById(R.id.btn_back).setOnClickListener(v -> onBackPressed());
+
         createCommunityButton.setOnClickListener(v -> createCommunity());
     }
 
