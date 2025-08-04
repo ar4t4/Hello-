@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hello.adapters.BluetoothMeshMessageAdapter;
 import com.example.hello.adapters.BluetoothMeshNodeAdapter;
+import com.example.hello.adapters.BluetoothMeshDeviceAdapter;
 import com.example.hello.models.BluetoothMeshMessage;
 import com.example.hello.models.BluetoothMeshNode;
 import com.example.hello.services.BluetoothMeshService;
@@ -72,6 +73,9 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
     private List<BluetoothDevice> discoveredDevices;
     private List<BluetoothMeshMessage> messages;
     private List<BluetoothMeshNode> networkNodes;
+    
+    // Discovery state tracking
+    private boolean isManualDiscovery = false;
 
     // UI Components
     private MaterialCardView deviceDiscoveryCard;
@@ -97,10 +101,9 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
 
         initializeViews();
         setupToolbar();
-        initializeBluetooth();
         setupRecyclerViews();
         setupClickListeners();
-        requestBluetoothPermissions();
+        requestBluetoothPermissions(); // Request permissions first, then initialize Bluetooth
     }
 
     private void initializeViews() {
@@ -204,6 +207,9 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
     }
 
     private void enableBluetoothAndStartMesh() {
+        // Initialize Bluetooth now that we have permissions
+        initializeBluetooth();
+        
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
@@ -245,6 +251,9 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
             return;
         }
 
+        // Set flag for manual discovery to show toast
+        isManualDiscovery = true;
+        
         progressIndicator.setVisibility(View.VISIBLE);
         btnStartDiscovery.setEnabled(false);
 
@@ -418,18 +427,58 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
             switch (state) {
                 case BluetoothMeshService.STATE_NONE:
                     Toast.makeText(this, "Network stopped", Toast.LENGTH_SHORT).show();
+                    progressIndicator.setVisibility(View.GONE);
                     break;
                 case BluetoothMeshService.STATE_LISTENING:
                     Toast.makeText(this, "Listening for connections...", Toast.LENGTH_SHORT).show();
+                    progressIndicator.setVisibility(View.GONE);
                     break;
                 case BluetoothMeshService.STATE_CONNECTING:
                     Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show();
+                    progressIndicator.setVisibility(View.VISIBLE);
                     break;
                 case BluetoothMeshService.STATE_CONNECTED:
                     Toast.makeText(this, "Connected to mesh network!", Toast.LENGTH_SHORT).show();
+                    progressIndicator.setVisibility(View.GONE);
+                    break;
+                case BluetoothMeshService.STATE_DISCOVERING:
+                    Toast.makeText(this, "Auto-discovering devices...", Toast.LENGTH_SHORT).show();
+                    progressIndicator.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    progressIndicator.setVisibility(View.GONE);
                     break;
             }
             updateUI();
+        });
+    }
+    
+    // Add new method for device discovery callback
+    public void onDeviceDiscovered(BluetoothDevice device) {
+        runOnUiThread(() -> {
+            if (device != null && !discoveredDevices.contains(device)) {
+                discoveredDevices.add(device);
+                
+                // Check if device name suggests it's a mesh-compatible device
+                String deviceName = "Unknown Device";
+                try {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                        deviceName = device.getName();
+                    }
+                } catch (SecurityException e) {
+                    Log.e(TAG, "Error getting device name: " + e.getMessage());
+                }
+                
+                Log.d(TAG, "Auto-discovered device: " + deviceName);
+                
+                // Update the adapter
+                BluetoothMeshDeviceAdapter deviceAdapter = new BluetoothMeshDeviceAdapter(
+                    discoveredDevices, this::connectToDevice);
+                devicesRecyclerView.setAdapter(deviceAdapter);
+                
+                // Show a brief notification for automatic discovery
+                Toast.makeText(this, "📱 Found: " + deviceName, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -452,8 +501,12 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
                 progressIndicator.setVisibility(View.GONE);
                 btnStartDiscovery.setEnabled(true);
                 
-                Toast.makeText(context, "Discovery finished. Found " + 
-                    discoveredDevices.size() + " devices", Toast.LENGTH_SHORT).show();
+                // Only show toast for manual discovery, not automatic background discovery
+                if (isManualDiscovery) {
+                    Toast.makeText(context, "Discovery finished. Found " + 
+                        discoveredDevices.size() + " devices", Toast.LENGTH_SHORT).show();
+                    isManualDiscovery = false; // Reset flag
+                }
             }
         }
     };
@@ -518,64 +571,6 @@ public class BluetoothMeshChatActivity extends AppCompatActivity
         // Stop mesh service
         if (meshService != null) {
             meshService.stop();
-        }
-    }
-
-    // Inner class for device adapter with mesh functionality
-    private static class BluetoothMeshDeviceAdapter extends RecyclerView.Adapter<BluetoothMeshDeviceAdapter.ViewHolder> {
-        private final List<BluetoothDevice> devices;
-        private final OnDeviceClickListener listener;
-        
-        interface OnDeviceClickListener {
-            void onDeviceClick(BluetoothDevice device);
-        }
-        
-        BluetoothMeshDeviceAdapter(List<BluetoothDevice> devices, OnDeviceClickListener listener) {
-            this.devices = devices;
-            this.listener = listener;
-        }
-        
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_bluetooth_mesh_device, parent, false);
-            return new ViewHolder(view);
-        }
-        
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            BluetoothDevice device = devices.get(position);
-            
-            if (ActivityCompat.checkSelfPermission(holder.itemView.getContext(), 
-                    Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                holder.deviceName.setText(device.getName() != null ? device.getName() : "Unknown Device");
-            } else {
-                holder.deviceName.setText("Unknown Device");
-            }
-            
-            holder.deviceAddress.setText(device.getAddress());
-            holder.deviceStatus.setText(device.getBondState() == BluetoothDevice.BOND_BONDED ? "Paired" : "Available");
-            
-            holder.itemView.setOnClickListener(v -> listener.onDeviceClick(device));
-        }
-        
-        @Override
-        public int getItemCount() {
-            return devices.size();
-        }
-        
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView deviceName;
-            final TextView deviceAddress;
-            final TextView deviceStatus;
-            
-            ViewHolder(View view) {
-                super(view);
-                deviceName = view.findViewById(R.id.device_name);
-                deviceAddress = view.findViewById(R.id.device_address);
-                deviceStatus = view.findViewById(R.id.device_status);
-            }
         }
     }
 }

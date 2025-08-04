@@ -62,6 +62,14 @@ public class BluetoothMeshService {
     public static final int STATE_LISTENING = 1;
     public static final int STATE_CONNECTING = 2;
     public static final int STATE_CONNECTED = 3;
+    public static final int STATE_DISCOVERING = 4;
+    
+    // Network maintenance constants
+    private static final long HEARTBEAT_INTERVAL = 10000; // 10 seconds
+    private static final long DISCOVERY_INTERVAL = 30000; // 30 seconds
+    private static final long STALE_NODE_THRESHOLD = 60000; // 1 minute
+    private static final long AUTO_DISCOVERY_INTERVAL = 45000; // 45 seconds
+    private static final int MAX_MESH_CONNECTIONS = 7; // Maximum connections
     
     public interface BluetoothMeshListener {
         void onMessageReceived(BluetoothMeshMessage message);
@@ -69,6 +77,7 @@ public class BluetoothMeshService {
         void onNodeLeft(BluetoothMeshNode node);
         void onNetworkTopologyChanged(List<BluetoothMeshNode> nodes);
         void onConnectionStateChanged(int state);
+        void onDeviceDiscovered(BluetoothDevice device); // Add discovery callback
     }
     
     private final BluetoothAdapter bluetoothAdapter;
@@ -90,6 +99,10 @@ public class BluetoothMeshService {
     
     // Routing table: nodeId -> next hop nodeId
     private final Map<String, String> routingTable;
+    
+    // Auto-discovery optimization
+    private int consecutiveEmptyDiscoveries = 0;
+    private long lastSuccessfulDiscovery = 0;
     
     // Message queues and handling
     private final List<BluetoothMeshMessage> pendingMessages;
@@ -114,8 +127,13 @@ public class BluetoothMeshService {
         
         // Initialize local node
         this.localNodeId = generateNodeId();
-        this.localNode = new BluetoothMeshNode(localNodeId, bluetoothAdapter.getName(), 
-                bluetoothAdapter.getAddress(), System.currentTimeMillis());
+        
+        // Get device name and address with permission check
+        String deviceName = getDeviceName();
+        String deviceAddress = getDeviceAddress();
+        
+        this.localNode = new BluetoothMeshNode(localNodeId, deviceName, 
+                deviceAddress, System.currentTimeMillis());
         
         // Add local node to network
         networkNodes.put(localNodeId, localNode);
@@ -125,8 +143,23 @@ public class BluetoothMeshService {
         Log.d(TAG, "BluetoothMeshService initialized with node ID: " + localNodeId);
     }
     
+    private String getDeviceName() {
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            return bluetoothAdapter.getName();
+        }
+        return "Unknown Device";
+    }
+    
+    private String getDeviceAddress() {
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            return bluetoothAdapter.getAddress();
+        }
+        return "00:00:00:00:00:00";
+    }
+    
     private String generateNodeId() {
-        return bluetoothAdapter.getAddress().replace(":", "") + "_" + System.currentTimeMillis();
+        String address = getDeviceAddress();
+        return address.replace(":", "") + "_" + System.currentTimeMillis();
     }
     
     public synchronized void startMeshNetwork() {
@@ -308,12 +341,211 @@ public class BluetoothMeshService {
             public void run() {
                 sendHeartbeat();
                 cleanupStaleNodes();
-                networkHandler.postDelayed(this, 10000); // Every 10 seconds
+                networkHandler.postDelayed(this, HEARTBEAT_INTERVAL);
             }
-        }, 10000);
+        }, HEARTBEAT_INTERVAL);
         
         // Send discovery announcement
         sendDiscoveryAnnouncement();
+        
+        // Start automatic device discovery
+        startAutomaticDiscovery();
+        
+        // Start automatic mesh expansion
+        startMeshExpansion();
+    }
+    
+    private void startAutomaticDiscovery() {
+        networkHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (connectedDevices.size() < MAX_MESH_CONNECTIONS) {
+                    // Smart discovery: increase interval after consecutive empty discoveries
+                    long timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulDiscovery;
+                    
+                    // If we've had many empty discoveries recently, reduce frequency
+                    if (consecutiveEmptyDiscoveries >= 3 && timeSinceLastSuccess > 300000) { // 5 minutes
+                        Log.d(TAG, "Reducing auto-discovery frequency due to consecutive empty discoveries");
+                        networkHandler.postDelayed(this, AUTO_DISCOVERY_INTERVAL * 3); // 2.25 minutes
+                    } else if (consecutiveEmptyDiscoveries >= 5) {
+                        Log.d(TAG, "Pausing auto-discovery due to excessive empty discoveries");
+                        networkHandler.postDelayed(this, AUTO_DISCOVERY_INTERVAL * 6); // 4.5 minutes
+                    } else {
+                        discoverNearbyMeshDevices();
+                        networkHandler.postDelayed(this, AUTO_DISCOVERY_INTERVAL);
+                    }
+                } else {
+                    // We have enough connections, check again later
+                    networkHandler.postDelayed(this, AUTO_DISCOVERY_INTERVAL * 2);
+                }
+            }
+        }, 5000); // Start after 5 seconds
+    }
+    
+    private void startMeshExpansion() {
+        networkHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                expandMeshNetwork();
+                networkHandler.postDelayed(this, DISCOVERY_INTERVAL * 2); // Every minute
+            }
+        }, 15000); // Start after 15 seconds
+    }
+    
+    private void discoverNearbyMeshDevices() {
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Log.w(TAG, "Bluetooth adapter not available for discovery");
+            return;
+        }
+        
+        // Check permissions first
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "BLUETOOTH_SCAN permission not granted");
+            return;
+        }
+        
+        Log.d(TAG, "Starting automatic device discovery for mesh expansion");
+        
+        // Get paired devices first
+        try {
+            Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+            for (BluetoothDevice device : pairedDevices) {
+                if (device != null && !isAlreadyConnected(device)) {
+                    Log.d(TAG, "Found paired device: " + getDeviceName(device));
+                    attemptMeshConnection(device);
+                }
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Security exception accessing paired devices: " + e.getMessage());
+        }
+        
+        // Start discovery for new devices
+        try {
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+            
+            boolean discoveryStarted = bluetoothAdapter.startDiscovery();
+            if (discoveryStarted) {
+                Log.d(TAG, "Device discovery started successfully");
+                currentState = STATE_DISCOVERING;
+                mainHandler.post(() -> listener.onConnectionStateChanged(currentState));
+                
+                // Stop discovery after 12 seconds
+                networkHandler.postDelayed(() -> {
+                    try {
+                        if (bluetoothAdapter.isDiscovering()) {
+                            bluetoothAdapter.cancelDiscovery();
+                            Log.d(TAG, "Discovery stopped after timeout");
+                        }
+                        // Track discovery completion
+                        trackDiscoveryCompletion();
+                    } catch (SecurityException e) {
+                        Log.e(TAG, "Error stopping discovery: " + e.getMessage());
+                    }
+                }, 12000);
+            } else {
+                Log.w(TAG, "Failed to start device discovery");
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Security exception starting discovery: " + e.getMessage());
+        }
+    }
+    
+    private void expandMeshNetwork() {
+        // Try to connect to devices discovered by connected nodes
+        for (BluetoothMeshNode node : networkNodes.values()) {
+            if (node != null && !node.getNodeId().equals(localNodeId)) {
+                // Request topology information from this node
+                requestNodeTopology(node.getNodeId());
+            }
+        }
+    }
+    
+    private void requestNodeTopology(String nodeId) {
+        BluetoothMeshMessage topologyRequest = new BluetoothMeshMessage(
+                generateMessageId(),
+                MSG_TYPE_TOPOLOGY,
+                localNodeId,
+                nodeId,
+                "REQUEST",
+                System.currentTimeMillis(),
+                0
+        );
+        
+        broadcastMessage(topologyRequest);
+    }
+    
+    private void trackDiscoveryCompletion() {
+        // Check if any new devices were discovered in this cycle
+        boolean foundNewDevices = false;
+        
+        try {
+            Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+            for (BluetoothDevice device : pairedDevices) {
+                if (!isAlreadyConnected(device) && connectedDevices.size() < MAX_MESH_CONNECTIONS) {
+                    foundNewDevices = true;
+                    break;
+                }
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Security exception checking paired devices: " + e.getMessage());
+        }
+        
+        if (foundNewDevices) {
+            consecutiveEmptyDiscoveries = 0;
+            lastSuccessfulDiscovery = System.currentTimeMillis();
+            Log.d(TAG, "Discovery successful - found potential devices");
+        } else {
+            consecutiveEmptyDiscoveries++;
+            Log.d(TAG, "Empty discovery cycle #" + consecutiveEmptyDiscoveries);
+        }
+    }
+    
+    private boolean isAlreadyConnected(BluetoothDevice device) {
+        String deviceAddress = device.getAddress();
+        return connectedDevices.containsKey(deviceAddress);
+    }
+    
+    private void attemptMeshConnection(BluetoothDevice device) {
+        if (connectedDevices.size() >= MAX_MESH_CONNECTIONS) {
+            Log.d(TAG, "Maximum connections reached, skipping device: " + getDeviceName(device));
+            return;
+        }
+        
+        if (isAlreadyConnected(device)) {
+            Log.d(TAG, "Already connected to device: " + getDeviceName(device));
+            return;
+        }
+        
+        Log.d(TAG, "Attempting mesh connection to: " + getDeviceName(device));
+        
+        // Notify listener about discovered device
+        mainHandler.post(() -> listener.onDeviceDiscovered(device));
+        
+        // Try to connect after a small delay to avoid overwhelming
+        networkHandler.postDelayed(() -> {
+            connectToDevice(device);
+        }, 2000);
+    }
+    
+    public void onDeviceDiscovered(BluetoothDevice device) {
+        if (device != null && !isAlreadyConnected(device)) {
+            Log.d(TAG, "New device discovered: " + getDeviceName(device));
+            attemptMeshConnection(device);
+        }
+    }
+    
+    private String getDeviceName(BluetoothDevice device) {
+        try {
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                String name = device.getName();
+                return name != null ? name : "Unknown Device";
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Security exception getting device name: " + e.getMessage());
+        }
+        return "Unknown Device";
     }
     
     private void sendHeartbeat() {
@@ -533,6 +765,11 @@ public class BluetoothMeshService {
         connectedThread.start();
         
         setState(STATE_CONNECTED);
+        
+        // Reset discovery counters on successful connection
+        consecutiveEmptyDiscoveries = 0;
+        lastSuccessfulDiscovery = System.currentTimeMillis();
+        Log.d(TAG, "Successful mesh connection - resetting discovery counters");
         
         // Send discovery announcement to new connection
         sendDiscoveryAnnouncement();

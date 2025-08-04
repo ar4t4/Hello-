@@ -17,20 +17,35 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Device Icon -->
-        <LinearLayout
+        <!-- Device Icon with Mesh Indicator -->
+        <RelativeLayout
             android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/circle_background"
-            android:gravity="center">
+            android:layout_height="48dp">
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:id="@+id/meshDeviceIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_bluetooth"
-                app:tint="@color/white" />
+                app:tint="@color/primary"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="@color/primary_light"
+                android:padding="8dp"
+                android:layout_centerInParent="true" />
 
-        </LinearLayout>
+            <ImageView
+                android:id="@+id/meshIcon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_network"
+                app:tint="@color/success"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="@color/surface"
+                android:padding="2dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true" />
+
+        </RelativeLayout>
 
         <!-- Device Info -->
         <LinearLayout
@@ -41,44 +56,66 @@
             android:layout_marginStart="12dp">
 
             <TextView
-                android:id="@+id/device_name"
+                android:id="@+id/meshDeviceName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Device Name"
+                android:text="Mesh Device Name"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary" />
 
             <TextView
-                android:id="@+id/device_address"
+                android:id="@+id/meshDeviceAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00:00:00:00:00"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
+                android:fontFamily="monospace"
                 android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/meshCapability"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mesh Compatible"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/success"
+                android:background="@drawable/status_badge_background"
+                android:backgroundTint="@color/success_light"
+                android:padding="4dp"
+                android:layout_marginTop="4dp" />
 
         </LinearLayout>
 
-        <!-- Status Badge -->
-        <TextView
-            android:id="@+id/device_status"
+        <!-- Status and Arrow -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Available"
-            android:textSize="12sp"
-            android:textColor="@color/white"
-            android:background="@drawable/status_badge_background"
-            android:padding="6dp"
-            android:layout_marginStart="8dp" />
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_marginStart="8dp">
 
-        <!-- Connect Arrow -->
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_arrow_forward"
-            android:layout_marginStart="8dp"
-            app:tint="@color/primary" />
+            <TextView
+                android:id="@+id/meshDeviceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Available"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/success"
+                android:background="@drawable/status_badge_background"
+                android:padding="6dp" />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@color/text_secondary"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
