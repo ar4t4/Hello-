@@ -18,6 +18,8 @@
 ## Contents of Presentation
 
 - ✅ **Introduction**
+- ✅ **Literature Review**
+- ✅ **Problem statement**
 - ✅ **Objectives** 
 - ✅ **Methodology**
 - ✅ **Implementation**
