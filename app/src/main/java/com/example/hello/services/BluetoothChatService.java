@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class BluetoothChatService {
     private static final String TAG = "BluetoothChatService";
-    private static final String NAME = "BluetoothChat";
+    private static final String NAME = "HELLO_BluetoothChat";
     private static final UUID MY_UUID = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
     public interface BluetoothChatListener {
@@ -29,6 +29,7 @@ public class BluetoothChatService {
         void onConnectionEstablished(String deviceName);
         void onConnectionLost();
         void onConnectionFailed();
+        void onStateChanged(int state);
     }
 
     // Connection states
@@ -59,6 +60,7 @@ public class BluetoothChatService {
     private synchronized void setState(int state) {
         Log.d(TAG, "setState() " + currentState + " -> " + state);
         currentState = state;
+        mainHandler.post(() -> listener.onStateChanged(state));
     }
 
     public synchronized int getState() {
@@ -68,13 +70,11 @@ public class BluetoothChatService {
     public synchronized void start() {
         Log.d(TAG, "start");
 
-        // Cancel any thread attempting to make a connection
         if (connectThread != null) {
             connectThread.cancel();
             connectThread = null;
         }
 
-        // Cancel any thread currently running a connection
         if (connectedThread != null) {
             connectedThread.cancel();
             connectedThread = null;
@@ -82,7 +82,6 @@ public class BluetoothChatService {
 
         setState(STATE_LISTEN);
 
-        // Start the thread to listen on a BluetoothServerSocket
         if (acceptThread == null) {
             acceptThread = new AcceptThread();
             acceptThread.start();
@@ -92,7 +91,6 @@ public class BluetoothChatService {
     public synchronized void connect(BluetoothDevice device) {
         Log.d(TAG, "connect to: " + device);
 
-        // Cancel any thread attempting to make a connection
         if (currentState == STATE_CONNECTING) {
             if (connectThread != null) {
                 connectThread.cancel();
@@ -100,54 +98,14 @@ public class BluetoothChatService {
             }
         }
 
-        // Cancel any thread currently running a connection
         if (connectedThread != null) {
             connectedThread.cancel();
             connectedThread = null;
         }
 
-        // Start the thread to connect with the given device
         connectThread = new ConnectThread(device);
         connectThread.start();
         setState(STATE_CONNECTING);
-    }
-
-    public synchronized void connected(BluetoothSocket socket, BluetoothDevice device, final String socketType) {
-        Log.d(TAG, "connected, Socket Type:" + socketType);
-
-        // Cancel the thread that completed the connection
-        if (connectThread != null) {
-            connectThread.cancel();
-            connectThread = null;
-        }
-
-        // Cancel any thread currently running a connection
-        if (connectedThread != null) {
-            connectedThread.cancel();
-            connectedThread = null;
-        }
-
-        // Cancel the accept thread because we only want to connect to one device
-        if (acceptThread != null) {
-            acceptThread.cancel();
-            acceptThread = null;
-        }
-
-        // Start the thread to manage the connection and perform transmissions
-        connectedThread = new ConnectedThread(socket, socketType);
-        connectedThread.start();
-
-        // Store the device name
-        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-            connectedDeviceName = device.getName();
-        } else {
-            connectedDeviceName = "Unknown Device";
-        }
-
-        setState(STATE_CONNECTED);
-
-        // Send the name of the connected device back to the UI Activity
-        mainHandler.post(() -> listener.onConnectionEstablished(connectedDeviceName));
     }
 
     public synchronized void stop() {
@@ -180,14 +138,43 @@ public class BluetoothChatService {
         r.write(message.getBytes());
     }
 
+    public synchronized void connected(BluetoothSocket socket, BluetoothDevice device, final String socketType) {
+        Log.d(TAG, "connected, Socket Type:" + socketType);
+
+        if (connectThread != null) {
+            connectThread.cancel();
+            connectThread = null;
+        }
+
+        if (connectedThread != null) {
+            connectedThread.cancel();
+            connectedThread = null;
+        }
+
+        if (acceptThread != null) {
+            acceptThread.cancel();
+            acceptThread = null;
+        }
+
+        connectedThread = new ConnectedThread(socket, socketType);
+        connectedThread.start();
+
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            connectedDeviceName = device.getName();
+        } else {
+            connectedDeviceName = "Unknown Device";
+        }
+
+        setState(STATE_CONNECTED);
+        mainHandler.post(() -> listener.onConnectionEstablished(connectedDeviceName));
+    }
+
     private void connectionFailed() {
-        setState(STATE_LISTEN);
         mainHandler.post(() -> listener.onConnectionFailed());
         BluetoothChatService.this.start();
     }
 
     private void connectionLost() {
-        setState(STATE_LISTEN);
         mainHandler.post(() -> listener.onConnectionLost());
         BluetoothChatService.this.start();
     }
@@ -202,7 +189,7 @@ public class BluetoothChatService {
 
             try {
                 if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                    tmp = bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, MY_UUID);
+                    tmp = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + socketType + "listen() failed", e);
@@ -268,7 +255,7 @@ public class BluetoothChatService {
 
             try {
                 if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                    tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + socketType + "create() failed", e);
@@ -280,7 +267,6 @@ public class BluetoothChatService {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + socketType);
             setName("ConnectThread" + socketType);
 
-            // Always cancel discovery because it will slow down a connection
             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
                 bluetoothAdapter.cancelDiscovery();
             }
@@ -308,7 +294,7 @@ public class BluetoothChatService {
             try {
                 socket.close();
             } catch (IOException e) {
-                Log.e(TAG, "close() of connect " + socketType + " socket failed", e);
+                Log.e(TAG, "close() of connect socket failed", e);
             }
         }
     }
@@ -347,7 +333,7 @@ public class BluetoothChatService {
                     
                     BluetoothMessage message = new BluetoothMessage(
                         receivedMessage,
-                        false, // isOutgoing
+                        false,
                         System.currentTimeMillis()
                     );
 

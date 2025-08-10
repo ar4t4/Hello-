@@ -219,6 +219,31 @@ public class BluetoothChatActivity extends AppCompatActivity {
                         "Failed to connect", Toast.LENGTH_SHORT).show();
                 });
             }
+
+            @Override
+            public void onStateChanged(int state) {
+                runOnUiThread(() -> {
+                    String stateText;
+                    switch (state) {
+                        case BluetoothChatService.STATE_NONE:
+                            stateText = "Not connected";
+                            break;
+                        case BluetoothChatService.STATE_LISTEN:
+                            stateText = "Listening for connections";
+                            break;
+                        case BluetoothChatService.STATE_CONNECTING:
+                            stateText = "Connecting...";
+                            break;
+                        case BluetoothChatService.STATE_CONNECTED:
+                            stateText = "Connected";
+                            break;
+                        default:
+                            stateText = "Unknown state";
+                    }
+                    // You could update a status TextView here if you have one
+                    Log.d(TAG, "State changed: " + stateText);
+                });
+            }
         });
     }
 

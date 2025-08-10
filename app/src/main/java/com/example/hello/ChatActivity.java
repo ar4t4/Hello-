@@ -19,6 +19,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.DatabaseException;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,9 +106,22 @@ public class ChatActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 messageList.clear();
                 for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                    Message message = messageSnapshot.getValue(Message.class);
-                    if (message != null) {
-                        messageList.add(message);
+                    try {
+                        Message message = messageSnapshot.getValue(Message.class);
+                        if (message != null) {
+                            messageList.add(message);
+                        }
+                    } catch (DatabaseException e) {
+                        Log.e("ChatActivity", "Error parsing message: " + e.getMessage());
+                        // Try to manually parse the message to handle type mismatches
+                        try {
+                            Message message = parseMessageManually(messageSnapshot);
+                            if (message != null) {
+                                messageList.add(message);
+                            }
+                        } catch (Exception ex) {
+                            Log.e("ChatActivity", "Failed to manually parse message: " + ex.getMessage());
+                        }
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -208,5 +223,71 @@ public class ChatActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+    
+    // Manual parsing method to handle type mismatches in Firebase data
+    private Message parseMessageManually(DataSnapshot messageSnapshot) {
+        try {
+            Message message = new Message();
+            
+            // Parse basic string fields
+            if (messageSnapshot.child("id").exists()) {
+                message.setId(messageSnapshot.child("id").getValue(String.class));
+            }
+            if (messageSnapshot.child("senderId").exists()) {
+                message.setSenderId(messageSnapshot.child("senderId").getValue(String.class));
+            }
+            if (messageSnapshot.child("senderName").exists()) {
+                message.setSenderName(messageSnapshot.child("senderName").getValue(String.class));
+            }
+            if (messageSnapshot.child("content").exists()) {
+                message.setContent(messageSnapshot.child("content").getValue(String.class));
+            }
+            if (messageSnapshot.child("chatId").exists()) {
+                message.setChatId(messageSnapshot.child("chatId").getValue(String.class));
+            }
+            if (messageSnapshot.child("senderProfileImageUrl").exists()) {
+                message.setSenderProfileImageUrl(messageSnapshot.child("senderProfileImageUrl").getValue(String.class));
+            }
+            
+            // Parse timestamp (can be long or string)
+            if (messageSnapshot.child("timestamp").exists()) {
+                Object timestampObj = messageSnapshot.child("timestamp").getValue();
+                if (timestampObj instanceof Long) {
+                    message.setTimestamp((Long) timestampObj);
+                } else if (timestampObj instanceof String) {
+                    try {
+                        message.setTimestamp(Long.parseLong((String) timestampObj));
+                    } catch (NumberFormatException e) {
+                        message.setTimestamp(System.currentTimeMillis());
+                    }
+                } else {
+                    message.setTimestamp(System.currentTimeMillis());
+                }
+            }
+            
+            // Parse messageType (can be int or string)
+            if (messageSnapshot.child("messageType").exists()) {
+                Object messageTypeObj = messageSnapshot.child("messageType").getValue();
+                if (messageTypeObj instanceof Integer) {
+                    message.setMessageType((Integer) messageTypeObj);
+                } else if (messageTypeObj instanceof String) {
+                    try {
+                        message.setMessageType(Integer.parseInt((String) messageTypeObj));
+                    } catch (NumberFormatException e) {
+                        message.setMessageType(0); // Default to text
+                    }
+                } else {
+                    message.setMessageType(0); // Default to text
+                }
+            } else {
+                message.setMessageType(0); // Default to text
+            }
+            
+            return message;
+        } catch (Exception e) {
+            Log.e("ChatActivity", "Error in manual parsing: " + e.getMessage());
+            return null;
+        }
     }
 } 
